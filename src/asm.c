@@ -67,37 +67,38 @@ typedef enum field_adrm
 
 typedef struct trans
 {
-    const char   str[4];     /* THE MNEMONIC STRING (EX: LDR; ADD; etc.) */
-    uint8_t      value;      /* THE TRANSLATED OPCODE OF THE MNEMONIC */
-    field_adrm_t dst;        /* INSTRUCTION DESTINATION FIELD */
-    field_adrm_t src;        /* INSTRUCTION SOURCE FIELD */
+    const char   str[4];    /* THE MNEMONIC STRING (EX: LDR; ADD; etc.) */
+    uint8_t      value;     /* THE TRANSLATED OPCODE OF THE MNEMONIC */
+    field_adrm_t dst;       /* INSTRUCTION DESTINATION FIELD */
+    field_adrm_t src;       /* INSTRUCTION SOURCE FIELD */
+    bool         is_addr;   /* INSTRUCTION NEED ADDRESS (12BITS) NOT DATA (8BITS) */
 } trans_t;
 
 const trans_t translate[] =
 {
-    {"HLT", HLT, NONE, NONE},
-    {"LDR", LDR, REG,  BOTH},
-    {"LDM", LDM, REG,  BOTH},
-    {"STI", STI, REG,  IMM},
-    {"STR", STR, BOTH, REG},
-    {"ADD", ADD, REG,  REG},
-    {"SUB", SUB, REG,  REG},
-    {"CMP", CMP, REG,  REG},
-    {"JMP", JMP, IMM,  NONE},
-    {"JZ",  JZ , IMM,  NONE},
-    {"JN",  JN , IMM,  NONE},
-    {"JC",  JC , IMM,  NONE},
-    {"JNC", JNC, IMM,  NONE},
-    {"JBE", JBE, IMM,  NONE},
-    {"JA",  JA , IMM,  NONE}
+    {"HLT", HLT, NONE, NONE, false},
+    {"LDR", LDR, REG,  BOTH, false},
+    {"LDM", LDM, REG,  BOTH, true},
+    {"STI", STI, REG,  IMM,  true},
+    {"STR", STR, BOTH, REG,  true},
+    {"ADD", ADD, REG,  REG,  false},
+    {"SUB", SUB, REG,  REG,  false},
+    {"CMP", CMP, REG,  REG,  false},
+    {"JMP", JMP, IMM,  NONE, true},
+    {"JZ",  JZ , IMM,  NONE, true},
+    {"JN",  JN , IMM,  NONE, true},
+    {"JC",  JC , IMM,  NONE, true},
+    {"JNC", JNC, IMM,  NONE, true},
+    {"JBE", JBE, IMM,  NONE, true},
+    {"JA",  JA , IMM,  NONE, true}
 };
 
 const trans_t registers[] =
 {
-    {"R0", 0x0, NONE, NONE},
-    {"R1", 0x1, NONE, NONE},
-    {"R2", 0x2, NONE, NONE},
-    {"R3", 0x3, NONE, NONE}
+    {"R0", 0x0, NONE, NONE, false},
+    {"R1", 0x1, NONE, NONE, false},
+    {"R2", 0x2, NONE, NONE, false},
+    {"R3", 0x3, NONE, NONE, false}
 };
 
 
@@ -267,18 +268,38 @@ int main(int argc, char *argv[])
             inst = translate[j].value;
         }
 
-        /* INSTRUCTION NEED DST FIELD, EITHER REGISTER OR IMMEDIATE */
-        if (translate[j].need_dst)
+        /* INSTRUCTION NEED DST FIELD */
+        if (translate[j].dst != NONE)
         {
             token = get_token;
-            if (is_token_register(token, &temp))
+            if (translate[j].dst == REG)
             {
-                dreg = registers[temp].value;
+                if (is_token_register(token, &temp))
+                {
+                    dreg = registers[temp].value;
+                }
+                else
+                {
+                    printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                    illegal = true;
+                }
+            }
+            else if (translate[j].dst == IMM)
+            {
+                if (!is_token_register(token, &temp))
+                {
+                    
+                }
+                else
+                {
+                    printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                    illegal = true;
+                }
             }
         }
 
-        /* INSTRUCTION NEED SRC FIELD, EITHER REGISTER OR IMMEDIATE */
-        if (translate[j].need_src)
+        /* INSTRUCTION NEED SRC FIELD */
+        if (translate[j].src != NONE)
         {
             token = get_token;
             if (is_token_register(token, &temp))
