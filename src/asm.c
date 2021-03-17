@@ -31,9 +31,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#define ASM_VERSION "1.0"
-#define ADRM_IMM false
-#define ADRM_REG true
+#define ASM_VERSION "1.0.0"
+#define ADRM_IMM  false
+#define ADRM_REG  true
+#define INST_NUM  0xF
+#define get_token strtok(NULL, " ,\n")
 
 
 typedef enum inst
@@ -57,35 +59,37 @@ typedef enum inst
 
 typedef struct trans
 {
-    char    str[4];
-    uint8_t value;
+    const char str[4];          /* THE MNEMONIC STRING (EX: LDR; ADD; etc.) */
+    uint8_t    value;           /* THE TRANSLATED OPCODE OF THE MNEMONIC */
+    bool       need_dst;        /* INSTRUCTION NEED DESTINATION FIELD */
+    bool       need_src;        /* INSTRUCTION NEED SOURCE FIELD */
 } trans_t;
 
 const trans_t translate[] =
 {
-    {"HLT", HLT},
-    {"LDR", LDR},
-    {"LDM", LDM},
-    {"STI", STI},
-    {"STR", STR},
-    {"ADD", ADD},
-    {"SUB", SUB},
-    {"CMP", CMP},
-    {"JMP", JMP},
-    {"JZ",  JZ },
-    {"JN",  JN },
-    {"JC",  JC },
-    {"JNC", JNC},
-    {"JBE", JBE},
-    {"JA",  JA }
+    {"HLT", HLT, false, false},
+    {"LDR", LDR, true, true},
+    {"LDM", LDM, true, true},
+    {"STI", STI, true, true},
+    {"STR", STR, true, true},
+    {"ADD", ADD, true, true},
+    {"SUB", SUB, true, true},
+    {"CMP", CMP, true, true},
+    {"JMP", JMP, true, false},
+    {"JZ",  JZ , true, false},
+    {"JN",  JN , true, false},
+    {"JC",  JC , true, false},
+    {"JNC", JNC, true, false},
+    {"JBE", JBE, true, false},
+    {"JA",  JA , true, false}
 };
 
 const trans_t registers[] =
 {
-    {"R0", 0x0},
-    {"R1", 0x1},
-    {"R2", 0x2},
-    {"R3", 0x3}
+    {"R0", 0x0, false, false},
+    {"R1", 0x1, false, false},
+    {"R2", 0x2, false, false},
+    {"R3", 0x3, false, false}
 };
 
 
@@ -112,16 +116,48 @@ void cmd_version(void)
 }
 
 
+bool is_token_register(char *token, int *range)
+{
+    int i = 0;
+
+    while ((strcmp((const char *)registers[i].str, (const char *)token) != 0))
+    {
+        if (i < 4)
+        {
+            i++;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    *range = i;
+    return true;
+}
+
+
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
-    char *src_fname  = NULL;
-    char *dst_fname  = NULL;
-    char *src_buffer = NULL;
-    char *token      = NULL;
-    FILE *src_file   = NULL;
-    FILE *dst_file   = NULL;
-    long  fsize      = 0L;
+    char    *src_fname  = NULL;
+    char    *dst_fname  = NULL;
+    char    *src_buffer = NULL;
+    char    *token      = NULL;
+    FILE    *src_file   = NULL;
+    FILE    *dst_file   = NULL;
+    long     fsize      = 0L;
+    int      i          = 0;
+    int      j          = 0;
+    int      temp       = 0;
+    bool     illegal    = false;
+    bool     adrm       = ADRM_IMM;  /* ADDRESSING MODE */
+    uint8_t  f[3]       = {0x0};     /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
+    uint8_t  inst       = 0;         /* INSTRUCTION CODE */
+    uint8_t  data       = 0;         /* 8BITS DATA */
+    uint8_t  dreg       = 0;         /* DESTINATION REGISTER */
+    uint8_t  sreg       = 0;         /* SOURCE REGISTER */
+    uint16_t addr       = 0;         /* 12BITS ADDRESS */
 
     /*** COMMAND-LINE ARGUMENTS ***/
     if (argc == 1)
@@ -196,13 +232,64 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+
     /*** ASSEMBLER ***/
     token = strtok(src_buffer, " ,\n");
-    int i = 0;
     while (token != NULL)
     {
-        printf("Token n°%d : \"%s\"\n", i, token);
-        token = strtok(NULL, " ,\n");
+        /* FIND THE INSTRUCTION IN THE TRANSLATION TABLE */
+        while ((strcmp(translate[j].str, (const char *)token) != 0))
+        {
+            if (j < INST_NUM)
+            {
+                j++;
+            }
+            else
+            {
+                printf("ILLEGAL INSTRUCTION \"%s\"\n", token);
+                illegal = true;
+                break;
+            }
+        }
+
+        /* GET THE OPCODE FROM THE VALID INSTRUCTION */
+        if (!illegal)
+        {
+            inst = translate[j].value;
+        }
+
+        /* INSTRUCTION NEED DST FIELD, EITHER REGISTER OR IMMEDIATE */
+        if (translate[j].need_dst)
+        {
+            token = get_token;
+            if (is_token_register(token, &temp))
+            {
+                dreg = registers[temp].value;
+            }
+        }
+
+        /* INSTRUCTION NEED SRC FIELD, EITHER REGISTER OR IMMEDIATE */
+        if (translate[j].need_src)
+        {
+            token = get_token;
+            if (is_token_register(token, &temp))
+            {
+                sreg = registers[temp].value;
+            }
+        }
+
+        //DEBUG
+        printf("INST = 0x%02X; DREG = 0x%01X; SREG = 0x%01X\n", inst, dreg, sreg);
+
+        /* reset variable use per instruction assembling */
+        j       = 0;
+        illegal = false;
+        temp = 0;
+        inst = 0;
+        dreg = 0;
+        sreg = 0;
+
+        token   = get_token;
         i++;
     }
 
