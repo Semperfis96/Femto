@@ -146,6 +146,162 @@ bool is_token_register(char *token, int *range)
 }
 
 
+/* RETURN "TRUE" ON ILLEGAL THING */
+bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uint8_t *data, bool *adrm)
+{
+    int temp = 0;
+    int j = inst; // HACK: TO BE FIX
+
+    if (translate[j].dst != NONE)
+    {
+        token = get_token;
+
+        /* DST FIELD ONLY SUPPORT REGISTER, SO VERIFY IF THERE IS A REGISTER AND ADD IT TO INSTRUCTION */
+        if (translate[j].dst == REG)
+        {
+            if (is_token_register(token, &temp))
+            {
+                *dreg = registers[temp].value;
+                printf("DST FIELD REGISTER R%d\n", *dreg);
+            }
+            else
+            {
+                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                return true;
+            }
+        }
+        /* DST FIELD ONLY SUPPORT IMMEDIATE, SO VERIFY IF THERE IS AN IMMEDIATE AND ADD IT TO INSTRUCTION */
+        else if (translate[j].dst == IMM)
+        {
+            if (!is_token_register(token, &temp))
+            {
+                /* INSTRUCTION NEED DATA OR ADDRESS */
+                if (translate[j].is_addr == true)
+                {
+                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
+                    printf("DST FIELD ADDR 0x%03X\n", *addr);
+                }
+                else
+                {
+                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
+                    printf("DST FIELD DATA 0x%02X\n", *data);
+                }
+            }
+            else
+            {
+                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                return true;
+            }
+        }
+        /* DST FIELD SUPPORT ALL, SO VERIFY IF THERE IS AN IMMEDIATE OR A REGISTER AND ADD WHATEVER TO INSTRUCTION */
+        else if (translate[j].dst == BOTH)
+        {
+            /* SET ADRM FIELD IS ONLY NEEDED WHEN INSTRUTION SUPPORT BOTH ADDRESSING MODES */
+            if (is_token_register(token, &temp))
+            {
+                *dreg = registers[temp].value;
+                *adrm = ADRM_REG;
+                printf("DST FIELD REGISTER R%d\n", *dreg);
+            }
+            else
+            {
+                adrm = ADRM_IMM;
+                if (translate[j].is_addr == true)
+                {
+                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
+                    printf("DST FIELD ADDR 0x%03X\n", *addr);
+                }
+                else
+                {
+                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
+                    printf("DST FIELD DATA 0x%02X\n", *data);
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+
+/* RETURN "TRUE" ON ILLEGAL THING */
+bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uint8_t *data, bool *adrm)
+{
+    int temp = 0;
+    int j = inst; // HACK: TO BE FIX
+
+    if (translate[j].src != NONE)
+    {
+        token = get_token;
+
+        /* SRC FIELD ONLY SUPPORT REGISTER, SO VERIFY IF THERE IS A REGISTER AND ADD IT TO INSTRUCTION */
+        if (translate[j].src == REG)
+        {
+            if (is_token_register(token, &temp))
+            {
+                *sreg = registers[temp].value;
+                printf("SRC FIELD REGISTER R%d\n", *sreg);
+            }
+            else
+            {
+                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                return true;
+            }
+        }
+        /* SRC FIELD ONLY SUPPORT IMMEDIATE, SO VERIFY IF THERE IS AN IMMEDIATE AND ADD IT TO INSTRUCTION */
+        else if (translate[j].src == IMM)
+        {
+            if (!is_token_register(token, &temp))
+            {
+                /* INSTRUCTION NEED DATA OR ADDRESS */
+                if (translate[j].is_addr == true)
+                {
+                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
+                    printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                }
+                else
+                {
+                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
+                    printf("SRC FIELD DATA 0x%02X\n", *data);
+                }
+            }
+            else
+            {
+                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                return true;
+            }
+        }
+        /* SRC FIELD SUPPORT ALL, SO VERIFY IF THERE IS AN IMMEDIATE OR A REGISTER AND ADD WHATEVER TO INSTRUCTION */
+        else if (translate[j].src == BOTH)
+        {
+            /* SET ADRM FIELD IS ONLY NEEDED WHEN INSTRUTION SUPPORT BOTH ADDRESSING MODES */
+            if (is_token_register(token, &temp))
+            {
+                *sreg = registers[temp].value;
+                *adrm = ADRM_REG;
+                printf("SRC FIELD REGISTER R%d\n", *sreg);
+            }
+            else
+            {
+                adrm = ADRM_IMM;
+                if (translate[j].is_addr == true)
+                {
+                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
+                    printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                }
+                else
+                {
+                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
+                    printf("SRC FIELD DATA 0x%02X\n", *data);
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
@@ -269,141 +425,23 @@ int main(int argc, char *argv[])
         }
 
         /*** DST FIELD ***/
-        if (translate[j].dst != NONE)
+        if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
         {
-            token = get_token;
-
-            /* DST FIELD ONLY SUPPORT REGISTER, SO VERIFY IF THERE IS A REGISTER AND ADD IT TO INSTRUCTION */
-            if (translate[j].dst == REG)
-            {
-                if (is_token_register(token, &temp))
-                {
-                    dreg = registers[temp].value;
-                    printf("DST FIELD REGISTER R%d\n", dreg);
-                }
-                else
-                {
-                    printf("ERROR: ILLEGAL ADDRESSING MODE\n");
-                    illegal = true;
-                }
-            }
-            /* DST FIELD ONLY SUPPORT IMMEDIATE, SO VERIFY IF THERE IS AN IMMEDIATE AND ADD IT TO INSTRUCTION */
-            else if (translate[j].dst == IMM)
-            {
-                if (!is_token_register(token, &temp))
-                {
-                    /* INSTRUCTION NEED DATA OR ADDRESS */
-                    if (translate[j].is_addr == true)
-                    {
-                        addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                        printf("DST FIELD ADDR 0x%03X\n", addr);
-                    }
-                    else
-                    {
-                        data = (uint8_t)strtol((const char *)token, NULL, 0);
-                        printf("DST FIELD DATA 0x%02X\n", data);
-                    }
-                }
-                else
-                {
-                    printf("ERROR: ILLEGAL ADDRESSING MODE\n");
-                    illegal = true;
-                }
-            }
-            /* DST FIELD SUPPORT ALL, SO VERIFY IF THERE IS AN IMMEDIATE OR A REGISTER AND ADD WHATEVER TO INSTRUCTION */
-            else if (translate[j].dst == BOTH)
-            {
-                /* SET ADRM FIELD IS ONLY NEEDED WHEN INSTRUTION SUPPORT BOTH ADDRESSING MODES */
-                if (is_token_register(token, &temp))
-                {
-                    dreg = registers[temp].value;
-                    adrm = ADRM_REG;
-                    printf("DST FIELD REGISTER R%d\n", dreg);
-                }
-                else
-                {
-                    adrm = ADRM_IMM;
-                    if (translate[j].is_addr == true)
-                    {
-                        addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                        printf("DST FIELD ADDR 0x%03X\n", addr);
-                    }
-                    else
-                    {
-                        data = (uint8_t)strtol((const char *)token, NULL, 0);
-                        printf("DST FIELD DATA 0x%02X\n", data);
-                    }
-                }
-            }
+            printf("ILLEGAL OPERATION !!!\n");
+            fclose(src_file);
+            fclose(dst_file);
+            free(src_buffer);
+            return -1;
         }
 
         /*** SRC FIELD ***/
-        if (translate[j].src != NONE)
+        if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
         {
-            token = get_token;
-
-            /* SRC FIELD ONLY SUPPORT REGISTER, SO VERIFY IF THERE IS A REGISTER AND ADD IT TO INSTRUCTION */
-            if (translate[j].src == REG)
-            {
-                if (is_token_register(token, &temp))
-                {
-                    sreg = registers[temp].value;
-                    printf("SRC FIELD REGISTER R%d\n", sreg);
-                }
-                else
-                {
-                    printf("ERROR: ILLEGAL ADDRESSING MODE\n");
-                    illegal = true;
-                }
-            }
-            /* SRC FIELD ONLY SUPPORT IMMEDIATE, SO VERIFY IF THERE IS AN IMMEDIATE AND ADD IT TO INSTRUCTION */
-            else if (translate[j].src == IMM)
-            {
-                if (!is_token_register(token, &temp))
-                {
-                    /* INSTRUCTION NEED DATA OR ADDRESS */
-                    if (translate[j].is_addr == true)
-                    {
-                        addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                        printf("SRC FIELD ADDR 0x%03X\n", addr);
-                    }
-                    else
-                    {
-                        data = (uint8_t)strtol((const char *)token, NULL, 0);
-                        printf("SRC FIELD DATA 0x%02X\n", data);
-                    }
-                }
-                else
-                {
-                    printf("ERROR: ILLEGAL ADDRESSING MODE\n");
-                    illegal = true;
-                }
-            }
-            /* SRC FIELD SUPPORT ALL, SO VERIFY IF THERE IS AN IMMEDIATE OR A REGISTER AND ADD WHATEVER TO INSTRUCTION */
-            else if (translate[j].src == BOTH)
-            {
-                /* SET ADRM FIELD IS ONLY NEEDED WHEN INSTRUTION SUPPORT BOTH ADDRESSING MODES */
-                if (is_token_register(token, &temp))
-                {
-                    sreg = registers[temp].value;
-                    adrm = ADRM_REG;
-                    printf("SRC FIELD REGISTER R%d\n", sreg);
-                }
-                else
-                {
-                    adrm = ADRM_IMM;
-                    if (translate[j].is_addr == true)
-                    {
-                        addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                        printf("SRC FIELD ADDR 0x%03X\n", addr);
-                    }
-                    else
-                    {
-                        data = (uint8_t)strtol((const char *)token, NULL, 0);
-                        printf("SRC FIELD DATA 0x%02X\n", data);
-                    }
-                }
-            }
+            printf("ILLEGAL OPERATION !!!\n");
+            fclose(src_file);
+            fclose(dst_file);
+            free(src_buffer);
+            return -1;
         }
 
         //DEBUG
