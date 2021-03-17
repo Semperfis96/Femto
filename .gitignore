@@ -1,0 +1,5 @@
+build/asm
+build/asm.o
+build/femto
+build/femto.o
+build/test.bin
