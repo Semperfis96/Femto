@@ -13,17 +13,11 @@ A computer emulator (don't exist in reality) for vintage-like era programming.
 For debian-like distros :
 ```
 sudo apt-get install build-essential
-
 git clone https://github.com/Semperfis96/Femto.git
-
 cd Femto
-
 mkdir build
-
 make all
-
 cd build
-
 ./femto
 ```
 
