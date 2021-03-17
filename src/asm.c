@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
     char *src_fname  = NULL;
     char *dst_fname  = NULL;
     char *src_buffer = NULL;
+    char *token      = NULL;
     FILE *src_file   = NULL;
     FILE *dst_file   = NULL;
     long  fsize      = 0L;
@@ -195,7 +196,15 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    printf("Source file:\n%s", src_buffer);
+    /*** ASSEMBLER ***/
+    token = strtok(src_buffer, " ,\n");
+    int i = 0;
+    while (token != NULL)
+    {
+        printf("Token n°%d : \"%s\"\n", i, token);
+        token = strtok(NULL, " ,\n");
+        i++;
+    }
 
 
     /*** FILE HANDLING (CLOSING) & PROGRAM EXIT ***/
