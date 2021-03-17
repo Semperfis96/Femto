@@ -57,39 +57,47 @@ typedef enum inst
     JMP = 0xE
 } inst_t;
 
+typedef enum field_adrm
+{
+    NONE,   /* FIELD NOT USE, SO NOT AVAILABLE */
+    REG,    /* FIELD SUPPORT REGISTER ADDRESSING MODE */
+    IMM,    /* FIELD SUPPORT IMMEDIATE ADDRESSING MODE */
+    BOTH    /* FIELD SUPPORT BOTH ADDRESSING MODES */
+} field_adrm_t;
+
 typedef struct trans
 {
-    const char str[4];          /* THE MNEMONIC STRING (EX: LDR; ADD; etc.) */
-    uint8_t    value;           /* THE TRANSLATED OPCODE OF THE MNEMONIC */
-    bool       need_dst;        /* INSTRUCTION NEED DESTINATION FIELD */
-    bool       need_src;        /* INSTRUCTION NEED SOURCE FIELD */
+    const char   str[4];     /* THE MNEMONIC STRING (EX: LDR; ADD; etc.) */
+    uint8_t      value;      /* THE TRANSLATED OPCODE OF THE MNEMONIC */
+    field_adrm_t dst;        /* INSTRUCTION DESTINATION FIELD */
+    field_adrm_t src;        /* INSTRUCTION SOURCE FIELD */
 } trans_t;
 
 const trans_t translate[] =
 {
-    {"HLT", HLT, false, false},
-    {"LDR", LDR, true, true},
-    {"LDM", LDM, true, true},
-    {"STI", STI, true, true},
-    {"STR", STR, true, true},
-    {"ADD", ADD, true, true},
-    {"SUB", SUB, true, true},
-    {"CMP", CMP, true, true},
-    {"JMP", JMP, true, false},
-    {"JZ",  JZ , true, false},
-    {"JN",  JN , true, false},
-    {"JC",  JC , true, false},
-    {"JNC", JNC, true, false},
-    {"JBE", JBE, true, false},
-    {"JA",  JA , true, false}
+    {"HLT", HLT, NONE, NONE},
+    {"LDR", LDR, REG,  BOTH},
+    {"LDM", LDM, REG,  BOTH},
+    {"STI", STI, REG,  IMM},
+    {"STR", STR, BOTH, REG},
+    {"ADD", ADD, REG,  REG},
+    {"SUB", SUB, REG,  REG},
+    {"CMP", CMP, REG,  REG},
+    {"JMP", JMP, IMM,  NONE},
+    {"JZ",  JZ , IMM,  NONE},
+    {"JN",  JN , IMM,  NONE},
+    {"JC",  JC , IMM,  NONE},
+    {"JNC", JNC, IMM,  NONE},
+    {"JBE", JBE, IMM,  NONE},
+    {"JA",  JA , IMM,  NONE}
 };
 
 const trans_t registers[] =
 {
-    {"R0", 0x0, false, false},
-    {"R1", 0x1, false, false},
-    {"R2", 0x2, false, false},
-    {"R3", 0x3, false, false}
+    {"R0", 0x0, NONE, NONE},
+    {"R1", 0x1, NONE, NONE},
+    {"R2", 0x2, NONE, NONE},
+    {"R3", 0x3, NONE, NONE}
 };
 
 
