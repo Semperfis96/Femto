@@ -3,3 +3,5 @@ build/asm.o
 build/femto
 build/femto.o
 build/test.bin
+build/asm_test.bin
+build/src.asm

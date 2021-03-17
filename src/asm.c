@@ -82,8 +82,10 @@ void cmd_version(void)
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
-    char *src_file  = NULL;
-    char *dst_file  = NULL;
+    char *src_fname  = NULL;
+    char *dst_fname  = NULL;
+    FILE *src_file   = NULL;
+    FILE *dst_file   = NULL;
 
     /*** COMMAND-LINE ARGUMENTS ***/
     if (argc == 1)
@@ -107,14 +109,37 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0)
         {
             i++;
-            src_file = argv[i];
+            src_fname = argv[i];
         }
         else if (strcmp(argv[i], "--output") == 0 || strcmp(argv[i], "-o") == 0)
         {
             i++;
-            dst_file = argv[i];
+            dst_fname = argv[i];
         }
     }
 
+    /*** FILE HANDLING (OPENING) */
+    src_file = fopen((const char *)src_fname, "r");
+    if (src_file == NULL)
+    {
+        printf("ERROR : CAN'T OPEN \"%s\" !!!\n", src_fname);
+        return -1;
+    }
+
+    dst_file = fopen((const char *)dst_fname, "w+b");
+    if (dst_file == NULL)
+    {
+        printf("ERROR : CAN'T OPEN \"%s\" !!!\n", dst_fname);
+        fclose(src_file);
+        return -1;
+    }
+
+    // DEBUG:
+    printf("Succesfully open \"%s\" (source) & \"%s\" (destination)\n", src_fname, dst_fname);
+
+
+    /*** FILE HANDLING (CLOSING) & PROGRAM EXIT */
+    fclose(src_file);
+    fclose(dst_file);
     return 0;
 }
