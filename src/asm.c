@@ -167,6 +167,7 @@ int main(int argc, char *argv[])
     uint8_t  sreg       = 0;         /* SOURCE REGISTER */
     uint16_t addr       = 0;         /* 12BITS ADDRESS */
 
+
     /*** COMMAND-LINE ARGUMENTS ***/
     if (argc == 1)
     {
@@ -233,7 +234,7 @@ int main(int argc, char *argv[])
 
     if (fread((void *)src_buffer, sizeof(char), (size_t)fsize, src_file) != (size_t)fsize)
     {
-        printf("ERROR (rom_load): CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
+        printf("ERROR: CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
         fclose(src_file);
         fclose(dst_file);
         free(src_buffer);
