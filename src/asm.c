@@ -55,6 +55,39 @@ typedef enum inst
     JMP = 0xE
 } inst_t;
 
+typedef struct trans
+{
+    char    str[4];
+    uint8_t value;
+} trans_t;
+
+const trans_t translate[] =
+{
+    {"HLT", HLT},
+    {"LDR", LDR},
+    {"LDM", LDM},
+    {"STI", STI},
+    {"STR", STR},
+    {"ADD", ADD},
+    {"SUB", SUB},
+    {"CMP", CMP},
+    {"JMP", JMP},
+    {"JZ",  JZ },
+    {"JN",  JN },
+    {"JC",  JC },
+    {"JNC", JNC},
+    {"JBE", JBE},
+    {"JA",  JA }
+};
+
+const trans_t registers[] =
+{
+    {"R0", 0x0},
+    {"R1", 0x1},
+    {"R2", 0x2},
+    {"R3", 0x3}
+};
+
 
 void cmd_help(void)
 {
