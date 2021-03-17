@@ -117,8 +117,10 @@ int main(int argc, char *argv[])
 {
     char *src_fname  = NULL;
     char *dst_fname  = NULL;
+    char *src_buffer = NULL;
     FILE *src_file   = NULL;
     FILE *dst_file   = NULL;
+    long  fsize      = 0L;
 
     /*** COMMAND-LINE ARGUMENTS ***/
     if (argc == 1)
@@ -151,7 +153,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    /*** FILE HANDLING (OPENING) */
+
+    /*** FILE HANDLING (OPENING) ***/
     src_file = fopen((const char *)src_fname, "r");
     if (src_file == NULL)
     {
@@ -167,12 +170,37 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    // DEBUG:
-    printf("Succesfully open \"%s\" (source) & \"%s\" (destination)\n", src_fname, dst_fname);
+
+    /*** FILE HANDLING (LOADING SRC FILE IN RAM) ***/
+    /* GET FILE SIZE */
+    fseek(src_file, 0L, SEEK_END);
+    fsize = ftell(src_file);
+    fseek(src_file, 0L, SEEK_SET);
+
+    src_buffer = malloc(fsize * sizeof(char));
+    if (src_buffer == NULL)
+    {
+        printf("ERROR: CAN'T ALLOCATE MEMORY FOR SOURCE FILE BUFFER !!!\n");
+        fclose(src_file);
+        fclose(dst_file);
+        return -1;
+    }
+
+    if (fread((void *)src_buffer, sizeof(char), (size_t)fsize, src_file) != (size_t)fsize)
+    {
+        printf("ERROR (rom_load): CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
+        fclose(src_file);
+        fclose(dst_file);
+        free(src_buffer);
+        return -1;
+    }
+
+    printf("Source file:\n%s", src_buffer);
 
 
-    /*** FILE HANDLING (CLOSING) & PROGRAM EXIT */
+    /*** FILE HANDLING (CLOSING) & PROGRAM EXIT ***/
     fclose(src_file);
     fclose(dst_file);
+    free(src_buffer);
     return 0;
 }
