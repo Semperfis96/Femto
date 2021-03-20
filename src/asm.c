@@ -390,6 +390,40 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
 }
 
 
+bool inst_assembler(char *token, uint8_t *inst)
+{
+    int  j       = 0;
+    bool illegal = false;
+
+    /* FIND THE INSTRUCTION IN THE TRANSLATION TABLE */
+    while ((strcmp(translate[j].str, (const char *)token) != 0))
+    {
+        if (j < INST_NUM)
+        {
+            j++;
+        }
+        else
+        {
+            printf("ILLEGAL INSTRUCTION \"%s\"\n", token);
+            illegal = true;
+            break;
+        }
+    }
+
+    /* GET THE OPCODE FROM THE VALID INSTRUCTION */
+    if (!illegal)
+    {
+        *inst = translate[j].value;
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+
+
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
@@ -401,9 +435,6 @@ int main(int argc, char *argv[])
     FILE    *dst_file   = NULL;
     long     fsize      = 0L;
     int      i          = 0;
-    int      j          = 0;
-    int      temp       = 0;
-    bool     illegal    = false;
     bool     adrm       = ADRM_IMM;  /* ADDRESSING MODE */
     uint8_t  f[3]       = {0x0};     /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
     uint8_t  inst       = 0;         /* INSTRUCTION CODE */
@@ -477,6 +508,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /* LOAD SOURCE FILE INTO A TEXT BUFFER */
     if (fread((void *)src_buffer, sizeof(char), (size_t)fsize, src_file) != (size_t)fsize)
     {
         printf("ERROR: CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
@@ -491,41 +523,30 @@ int main(int argc, char *argv[])
     token = strtok(src_buffer, " ,\n");
     while (token != NULL)
     {
-        /* FIND THE INSTRUCTION IN THE TRANSLATION TABLE */
-        while ((strcmp(translate[j].str, (const char *)token) != 0))
+        /*** INST ASSEMBLING ***/
+        if (inst_assembler(token, &inst))
         {
-            if (j < INST_NUM)
-            {
-                j++;
-            }
-            else
-            {
-                printf("ILLEGAL INSTRUCTION \"%s\"\n", token);
-                illegal = true;
-                break;
-            }
-        }
-
-        /* GET THE OPCODE FROM THE VALID INSTRUCTION */
-        if (!illegal)
-        {
-            inst = translate[j].value;
-        }
-
-        /*** DST FIELD ***/
-        if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
-        {
-            printf("ILLEGAL OPERATION !!!\n");
+            printf("ILLEGAL INSTRUCTION !!!\n");
             fclose(src_file);
             fclose(dst_file);
             free(src_buffer);
             return -1;
         }
 
-        /*** SRC FIELD ***/
+        /*** DST ASSEMBLING ***/
+        if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
+        {
+            printf("ILLEGAL DST FIELD !!!\n");
+            fclose(src_file);
+            fclose(dst_file);
+            free(src_buffer);
+            return -1;
+        }
+
+        /*** SRC ASSEMBLING ***/
         if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
         {
-            printf("ILLEGAL OPERATION !!!\n");
+            printf("ILLEGAL SRC FIELD !!!\n");
             fclose(src_file);
             fclose(dst_file);
             free(src_buffer);
@@ -536,9 +557,6 @@ int main(int argc, char *argv[])
         printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X\n", inst, adrm, dreg, sreg);
 
         /* reset variable use per instruction assembling */
-        j       = 0;
-        illegal = false;
-        temp = 0;
         inst = 0;
         dreg = 0;
         sreg = 0;
