@@ -317,6 +317,19 @@ int main(int argc, char *argv[])
                 pc = addr;
                 printf("JMP: 0x%03X (PC = 0x%03X)\n", addr, pc);
                 break;
+            
+            case JZ:
+                /* JZ/JE IMM */
+                if (ZFLAG == 1)
+                {
+                    pc = addr;
+                    printf("JZ/JE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                else
+                {
+                    printf("NOT TAKEN JZ/JE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                break;
 
             default:
                 printf("ILLEGAL OPCODE 0x%02X AT 0x%03X\n", inst, (pc - 3) % 0xFFF);
