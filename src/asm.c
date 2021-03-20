@@ -423,7 +423,7 @@ bool inst_assembler(char *token, uint8_t *inst)
 }
 
 
-
+/* TODO: FIX INSTRUCTION NOT RECOGNIZE WITHOUT '\n' AFTER IT (LIKE HLT) */
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
@@ -434,7 +434,6 @@ int main(int argc, char *argv[])
     FILE    *src_file   = NULL;
     FILE    *dst_file   = NULL;
     long     fsize      = 0L;
-    int      i          = 0;
     bool     adrm       = ADRM_IMM;  /* ADDRESSING MODE */
     uint8_t  f[3]       = {0x0};     /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
     uint8_t  inst       = 0;         /* INSTRUCTION CODE */
@@ -578,7 +577,6 @@ int main(int argc, char *argv[])
         data  = 0;
         adrm  = ADRM_IMM;
         token = get_token;
-        i++;
     }
 
 
