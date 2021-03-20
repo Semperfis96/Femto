@@ -414,6 +414,7 @@ bool inst_assembler(char *token, uint8_t *inst)
     if (!illegal)
     {
         *inst = translate[j].value;
+        printf("INSTRUCTION: %s\n", translate[j].str);
         return false;
     }
     else
@@ -554,6 +555,7 @@ int main(int argc, char *argv[])
 
         //DEBUG
         printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X; DATA = 0x%02X; ADDR = 0x%03X\n", inst, adrm, dreg, sreg, data, addr);
+
 
         /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
         f[0] = inst | (adrm << 7);
