@@ -554,19 +554,35 @@ int main(int argc, char *argv[])
         }
 
         //DEBUG
-        printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X\n", inst, adrm, dreg, sreg);
+        printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X; DATA = 0x%02X; ADDR = 0x%03X\n", inst, adrm, dreg, sreg, data, addr);
+
+        /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
+        f[0] = inst | (adrm << 7);
+        f[1] = (dreg << 6) | (sreg << 4) | ((addr & 0xF00) >> 8);
+        f[2] = data | (addr & 0x0FF);
+
+        //DEBUG
+        printf("F[0] = 0x%02X; F[1] = 0x%02X; F[2] = 0x%02X\n", f[0], f[1], f[2]);
+
+        if (fwrite((const void *)f, 1, 3, dst_file) < 3)
+        {
+            printf("ERROR DURING WRITING \"%s\"\n", dst_fname);
+        }
+
 
         /* reset variable use per instruction assembling */
         inst  = 0;
         dreg  = 0;
         sreg  = 0;
+        addr  = 0;
+        data  = 0;
         adrm  = ADRM_IMM;
         token = get_token;
         i++;
     }
 
 
-    /*** FILE HANDLING (CLOSING) & PROGRAM EXIT ***/
+    /*** FILE HANDLING (CLOSING) & FREE BUFFER & PROGRAM EXIT ***/
     fclose(src_file);
     fclose(dst_file);
     free(src_buffer);
