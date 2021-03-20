@@ -178,13 +178,35 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                 /* INSTRUCTION NEED DATA OR ADDRESS */
                 if (translate[j].is_addr == true)
                 {
-                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                    printf("DST FIELD ADDR 0x%03X\n", *addr);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the address, no more than 3 bytes */
+                    if (temp < 0x1000)
+                    {
+                        *addr = (uint16_t)temp;
+                        printf("DST FIELD ADDR 0x%03X\n", *addr);
+                    }
+                    else
+                    {
+                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
                 else
                 {
-                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
-                    printf("DST FIELD DATA 0x%02X\n", *data);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the data, no more than 2 bytes */
+                    if (temp < 0x100)
+                    {
+                        *data = (uint8_t)temp;
+                        printf("DST FIELD DATA 0x%02X\n", *data);
+                    }
+                    else
+                    {
+                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
             }
             else
@@ -208,13 +230,35 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                 adrm = ADRM_IMM;
                 if (translate[j].is_addr == true)
                 {
-                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                    printf("DST FIELD ADDR 0x%03X\n", *addr);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the address, no more than 3 bytes */
+                    if (temp < 0x1000)
+                    {
+                        *addr = (uint16_t)temp;
+                        printf("DST FIELD ADDR 0x%03X\n", *addr);
+                    }
+                    else
+                    {
+                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
                 else
                 {
-                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
-                    printf("DST FIELD DATA 0x%02X\n", *data);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the data, no more than 2 bytes */
+                    if (temp < 0x100)
+                    {
+                        *data = (uint8_t)temp;
+                        printf("DST FIELD DATA 0x%02X\n", *data);
+                    }
+                    else
+                    {
+                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
             }
         }
@@ -256,13 +300,35 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                 /* INSTRUCTION NEED DATA OR ADDRESS */
                 if (translate[j].is_addr == true)
                 {
-                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                    printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the address, no more than 3 bytes */
+                    if (temp < 0x1000)
+                    {
+                        *addr = (uint16_t)temp;
+                        printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                    }
+                    else
+                    {
+                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
                 else
                 {
-                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
-                    printf("SRC FIELD DATA 0x%02X\n", *data);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the data, no more than 2 bytes */
+                    if (temp < 0x100)
+                    {
+                        *data = (uint8_t)temp;
+                        printf("SRC FIELD DATA 0x%02X\n", *data);
+                    }
+                    else
+                    {
+                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
             }
             else
@@ -286,13 +352,35 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                 adrm = ADRM_IMM;
                 if (translate[j].is_addr == true)
                 {
-                    *addr = (uint16_t)strtol((const char *)token, NULL, 0);
-                    printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the address, no more than 3 bytes */
+                    if (temp < 0x1000)
+                    {
+                        *addr = (uint16_t)temp;
+                        printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                    }
+                    else
+                    {
+                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
                 else
                 {
-                    *data = (uint8_t)strtol((const char *)token, NULL, 0);
-                    printf("SRC FIELD DATA 0x%02X\n", *data);
+                    temp = (int)strtol((const char *)token, NULL, 0);
+
+                    /* verify the size of the data, no more than 2 bytes */
+                    if (temp < 0x100)
+                    {
+                        *data = (uint8_t)temp;
+                        printf("SRC FIELD DATA 0x%02X\n", *data);
+                    }
+                    else
+                    {
+                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        return true;
+                    }
                 }
             }
         }
