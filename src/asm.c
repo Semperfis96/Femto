@@ -557,12 +557,11 @@ int main(int argc, char *argv[])
         printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X\n", inst, adrm, dreg, sreg);
 
         /* reset variable use per instruction assembling */
-        inst = 0;
-        dreg = 0;
-        sreg = 0;
-        adrm = ADRM_IMM;
-
-        token   = get_token;
+        inst  = 0;
+        dreg  = 0;
+        sreg  = 0;
+        adrm  = ADRM_IMM;
+        token = get_token;
         i++;
     }
 
