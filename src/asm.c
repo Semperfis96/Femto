@@ -34,7 +34,6 @@
 #define ASM_VERSION "1.0.0"
 #define ADRM_IMM  false
 #define ADRM_REG  true
-#define INST_NUM  0xF
 #define get_token strtok(NULL, " ,\n")
 
 
@@ -128,25 +127,26 @@ void cmd_version(void)
 }
 
 
-/* NEED REFACTORING IF POSSIBLE */
-bool is_token_register(char *token, int *range)
+bool is_reg(char *token, int *range)
 {
     int i = 0;
 
-    while ((strcmp((const char *)reg_trans_table[i].str, (const char *)token) != 0))
+    /* FIND THE REGISTER IN TRANSLATION TABLE */
+    while ((strcmp((const char *)reg_trans_table[i].str, (const char *)token) != 0) && i < 4)
     {
-        if (i < 4)
-        {
-            i++;
-        }
-        else
-        {
-            return false;
-        }
+        i++;
     }
 
-    *range = i;
-    return true;
+    if (i < 4)
+    {
+        *range = i;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+    
 }
 
 
@@ -164,7 +164,7 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
         /* DST FIELD ONLY SUPPORT REGISTER, SO VERIFY IF THERE IS A REGISTER AND ADD IT TO INSTRUCTION */
         if (inst_trans_table[j].dst == REG)
         {
-            if (is_token_register(token, &temp))
+            if (is_reg(token, &temp))
             {
                 *dreg = reg_trans_table[temp].value;
                 printf("DST FIELD REGISTER R%d\n", *dreg);
@@ -178,7 +178,7 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
         /* DST FIELD ONLY SUPPORT IMMEDIATE, SO VERIFY IF THERE IS AN IMMEDIATE AND ADD IT TO INSTRUCTION */
         else if (inst_trans_table[j].dst == IMM)
         {
-            if (!is_token_register(token, &temp))
+            if (!is_reg(token, &temp))
             {
                 /* INSTRUCTION NEED DATA OR ADDRESS */
                 if (inst_trans_table[j].is_addr == true)
@@ -224,7 +224,7 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
         else if (inst_trans_table[j].dst == BOTH)
         {
             /* SET ADRM FIELD IS ONLY NEEDED WHEN INSTRUTION SUPPORT BOTH ADDRESSING MODES */
-            if (is_token_register(token, &temp))
+            if (is_reg(token, &temp))
             {
                 *dreg = reg_trans_table[temp].value;
                 *adrm = ADRM_REG;
@@ -287,7 +287,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
         /* SRC FIELD ONLY SUPPORT REGISTER, SO VERIFY IF THERE IS A REGISTER AND ADD IT TO INSTRUCTION */
         if (inst_trans_table[j].src == REG)
         {
-            if (is_token_register(token, &temp))
+            if (is_reg(token, &temp))
             {
                 *sreg = reg_trans_table[temp].value;
                 printf("SRC FIELD REGISTER R%d\n", *sreg);
@@ -301,7 +301,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
         /* SRC FIELD ONLY SUPPORT IMMEDIATE, SO VERIFY IF THERE IS AN IMMEDIATE AND ADD IT TO INSTRUCTION */
         else if (inst_trans_table[j].src == IMM)
         {
-            if (!is_token_register(token, &temp))
+            if (!is_reg(token, &temp))
             {
                 /* INSTRUCTION NEED DATA OR ADDRESS */
                 if (inst_trans_table[j].is_addr == true)
@@ -347,7 +347,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
         else if (inst_trans_table[j].src == BOTH)
         {
             /* SET ADRM FIELD IS ONLY NEEDED WHEN INSTRUTION SUPPORT BOTH ADDRESSING MODES */
-            if (is_token_register(token, &temp))
+            if (is_reg(token, &temp))
             {
                 *sreg = reg_trans_table[temp].value;
                 *adrm = ADRM_REG;
