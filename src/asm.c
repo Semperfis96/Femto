@@ -430,24 +430,24 @@ bool inst_assembler(char *token, uint8_t *inst)
 }
 
 
-/* TODO: FIX INSTRUCTION NOT RECOGNIZE WITHOUT '\n' AFTER IT (LIKE HLT) */
+/* TODO: FIX INSTRUCTION NOT RECOGNIZE WITHOUT '\n' AFTER IT (LIKE HLT JUST BEFORE END OF FILE) */
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
-    char    *src_fname  = NULL;
-    char    *dst_fname  = NULL;
-    char    *src_buffer = NULL;
-    char    *token      = NULL;
-    FILE    *src_file   = NULL;
-    FILE    *dst_file   = NULL;
-    long     fsize      = 0L;
-    bool     adrm       = ADRM_IMM;  /* ADDRESSING MODE */
-    uint8_t  f[3]       = {0x0};     /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
-    uint8_t  inst       = 0;         /* INSTRUCTION CODE */
-    uint8_t  data       = 0;         /* 8BITS DATA */
-    uint8_t  dreg       = 0;         /* DESTINATION REGISTER */
-    uint8_t  sreg       = 0;         /* SOURCE REGISTER */
-    uint16_t addr       = 0;         /* 12BITS ADDRESS */
+    char    *src_fname  = NULL;         /* SOURCE FILE NAME */
+    char    *dst_fname  = NULL;         /* DESTINATION FILE NAME */
+    char    *src_buffer = NULL;         /* SOURCE FILE LOAD IN MEMORY POINTER */
+    char    *token      = NULL;         /* TOKEN ;-) */
+    FILE    *src_file   = NULL;         /* SOURCE FILE (ASSEMBLY LANGUAGE) */
+    FILE    *dst_file   = NULL;         /* DESTINATION FILE (BINARY) */
+    long     fsize      = 0L;           /* FILE SIZE */
+    bool     adrm       = ADRM_IMM;     /* ADDRESSING MODE */
+    uint8_t  f[3]       = {0x0};        /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
+    uint8_t  inst       = 0;            /* INSTRUCTION CODE */
+    uint8_t  data       = 0;            /* 8BITS DATA */
+    uint8_t  dreg       = 0;            /* DESTINATION REGISTER */
+    uint8_t  sreg       = 0;            /* SOURCE REGISTER */
+    uint16_t addr       = 0;            /* 12BITS ADDRESS */
 
 
     /*** COMMAND-LINE ARGUMENTS ***/
@@ -524,6 +524,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /* CLOSE SOURCE FILE AFER LOADING, NO MORE NEED IT */
+    fclose(src_file);
+
 
     /*** ASSEMBLER ***/
     token = strtok(src_buffer, " ,\n");
@@ -589,7 +592,6 @@ int main(int argc, char *argv[])
 
 
     /*** FILE HANDLING (CLOSING) & FREE BUFFER & PROGRAM EXIT ***/
-    fclose(src_file);
     fclose(dst_file);
     free(src_buffer);
     return 0;
