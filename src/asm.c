@@ -398,29 +398,21 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
 
 bool inst_assembler(char *token, uint8_t *inst)
 {
-    int  j       = 0;
-    bool illegal = false;
+    int  i = 0;
 
     /* FIND THE INSTRUCTION IN THE TRANSLATION TABLE */
-    while ((strcmp(inst_trans_table[j].str, (const char *)token) != 0))
+    while ((strcmp(inst_trans_table[i].str, (const char *)token) != 0) && i < 0xFF)
     {
-        if (j < INST_NUM)
-        {
-            j++;
-        }
-        else
-        {
-            printf("ILLEGAL INSTRUCTION \"%s\"\n", token);
-            illegal = true;
-            break;
-        }
+        i++;
     }
 
     /* GET THE OPCODE FROM THE VALID INSTRUCTION */
-    if (!illegal)
+    if (i < 0xFF)
     {
-        *inst = inst_trans_table[j].value;
-        printf("INSTRUCTION: %s\n", inst_trans_table[j].str);
+        *inst = inst_trans_table[i].value;
+
+        // DEBUG
+        printf("INSTRUCTION: %s\n", inst_trans_table[i].str);
         return false;
     }
     else
@@ -535,8 +527,7 @@ int main(int argc, char *argv[])
         /*** INST ASSEMBLING ***/
         if (inst_assembler(token, &inst))
         {
-            printf("ILLEGAL INSTRUCTION !!!\n");
-            fclose(src_file);
+            printf("ILLEGAL INSTRUCTION : \"%s\"\n", (const char *)token);
             fclose(dst_file);
             free(src_buffer);
             return -1;
@@ -546,7 +537,6 @@ int main(int argc, char *argv[])
         if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
         {
             printf("ILLEGAL DST FIELD !!!\n");
-            fclose(src_file);
             fclose(dst_file);
             free(src_buffer);
             return -1;
@@ -556,7 +546,6 @@ int main(int argc, char *argv[])
         if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
         {
             printf("ILLEGAL SRC FIELD !!!\n");
-            fclose(src_file);
             fclose(dst_file);
             free(src_buffer);
             return -1;
