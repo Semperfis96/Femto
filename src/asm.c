@@ -171,7 +171,7 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
             }
             else
             {
-                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                printf("(dst_assembler) ERROR: ILLEGAL ADDRESSING MODE \"%s\"\n", token);
                 return true;
             }
         }
@@ -193,7 +193,7 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
@@ -209,14 +209,14 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(dst_assembler) DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
             }
             else
             {
-                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                printf("(dst_assembler) ERROR: ILLEGAL ADDRESSING MODE \"%s\"\n", token);
                 return true;
             }
         }
@@ -245,7 +245,7 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
@@ -261,7 +261,7 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(dst_assembler) DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
@@ -294,7 +294,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
             }
             else
             {
-                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                printf("(src_assembler) ERROR: ILLEGAL ADDRESSING MODE \"%s\"\n", token);
                 return true;
             }
         }
@@ -316,7 +316,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
@@ -332,14 +332,14 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(src_assembler) DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
             }
             else
             {
-                printf("ERROR: ILLEGAL ADDRESSING MODE\n");
+                printf("(src_assembler) ERROR: ILLEGAL ADDRESSING MODE \"%s\"\n", token);
                 return true;
             }
         }
@@ -368,7 +368,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
@@ -384,7 +384,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                     }
                     else
                     {
-                        printf("DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                        printf("(src_assembler) DATA FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
                         return true;
                     }
                 }
@@ -398,7 +398,7 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
 
 bool inst_assembler(char *token, uint8_t *inst)
 {
-    int  i = 0;
+    int i = 0;
 
     /* FIND THE INSTRUCTION IN THE TRANSLATION TABLE */
     while ((strcmp(inst_trans_table[i].str, (const char *)token) != 0) && i < 0xFF)
@@ -410,7 +410,6 @@ bool inst_assembler(char *token, uint8_t *inst)
     if (i < 0xFF)
     {
         *inst = inst_trans_table[i].value;
-
         // DEBUG
         printf("INSTRUCTION: %s\n", inst_trans_table[i].str);
         return false;
@@ -478,14 +477,14 @@ int main(int argc, char *argv[])
     src_file = fopen((const char *)src_fname, "r");
     if (src_file == NULL)
     {
-        printf("ERROR : CAN'T OPEN \"%s\" !!!\n", src_fname);
+        printf("(main) ERROR : CAN'T OPEN \"%s\" !!!\n", src_fname);
         return -1;
     }
 
     dst_file = fopen((const char *)dst_fname, "w+b");
     if (dst_file == NULL)
     {
-        printf("ERROR : CAN'T OPEN \"%s\" !!!\n", dst_fname);
+        printf("(main) ERROR : CAN'T OPEN \"%s\" !!!\n", dst_fname);
         fclose(src_file);
         return -1;
     }
@@ -500,7 +499,7 @@ int main(int argc, char *argv[])
     src_buffer = malloc(fsize * sizeof(char));
     if (src_buffer == NULL)
     {
-        printf("ERROR: CAN'T ALLOCATE MEMORY FOR SOURCE FILE BUFFER !!!\n");
+        printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR SOURCE FILE BUFFER !!!\n");
         fclose(src_file);
         fclose(dst_file);
         return -1;
@@ -509,7 +508,7 @@ int main(int argc, char *argv[])
     /* LOAD SOURCE FILE INTO A TEXT BUFFER */
     if (fread((void *)src_buffer, sizeof(char), (size_t)fsize, src_file) != (size_t)fsize)
     {
-        printf("ERROR: CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
+        printf("(main) ERROR: CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
         fclose(src_file);
         fclose(dst_file);
         free(src_buffer);
@@ -527,7 +526,7 @@ int main(int argc, char *argv[])
         /*** INST ASSEMBLING ***/
         if (inst_assembler(token, &inst))
         {
-            printf("ILLEGAL INSTRUCTION : \"%s\"\n", (const char *)token);
+            printf("(main) ILLEGAL INSTRUCTION : \"%s\"\n", (const char *)token);
             fclose(dst_file);
             free(src_buffer);
             return -1;
@@ -536,7 +535,7 @@ int main(int argc, char *argv[])
         /*** DST ASSEMBLING ***/
         if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
         {
-            printf("ILLEGAL DST FIELD !!!\n");
+            printf("(main) ILLEGAL DST FIELD\n");
             fclose(dst_file);
             free(src_buffer);
             return -1;
@@ -545,7 +544,7 @@ int main(int argc, char *argv[])
         /*** SRC ASSEMBLING ***/
         if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
         {
-            printf("ILLEGAL SRC FIELD !!!\n");
+            printf("(main) ILLEGAL SRC FIELD\n");
             fclose(dst_file);
             free(src_buffer);
             return -1;
@@ -565,11 +564,11 @@ int main(int argc, char *argv[])
 
         if (fwrite((const void *)f, 1, 3, dst_file) < 3)
         {
-            printf("ERROR DURING WRITING \"%s\"\n", dst_fname);
+            printf("(main) ERROR DURING WRITING IN \"%s\"\n", dst_fname);
         }
 
 
-        /* reset variable use per instruction assembling */
+        /*** RESET VARIABLES BECAUSE THERE ARE USED PER INSTRUCTION ASSEMBLING ***/
         inst  = 0;
         dreg  = 0;
         sreg  = 0;
