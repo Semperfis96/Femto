@@ -430,12 +430,10 @@ int main(int argc, char *argv[])
 {
     char    *src_fname  = NULL;         /* SOURCE FILE NAME */
     char    *dst_fname  = NULL;         /* DESTINATION FILE NAME */
-    char    *src_buffer = NULL;         /* SOURCE FILE LOAD IN MEMORY POINTER */
     char    *token      = NULL;         /* TOKEN ;-) */
     char    *line       = NULL;
     FILE    *src_file   = NULL;         /* SOURCE FILE (ASSEMBLY LANGUAGE) */
     FILE    *dst_file   = NULL;         /* DESTINATION FILE (BINARY) */
-    long     fsize      = 0L;           /* FILE SIZE */
     bool     adrm       = ADRM_IMM;     /* ADDRESSING MODE */
     uint8_t  f[3]       = {0x0};        /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
     uint8_t  inst       = 0;            /* INSTRUCTION CODE */
@@ -506,23 +504,6 @@ int main(int argc, char *argv[])
     }
 
 
-    /*** FILE HANDLING (LOADING SRC FILE IN RAM) ***/
-    /* GET FILE SIZE */
-    fseek(src_file, 0L, SEEK_END);
-    fsize = ftell(src_file);
-    fseek(src_file, 0L, SEEK_SET);
-
-    src_buffer = malloc(fsize * sizeof(char));
-    if (src_buffer == NULL)
-    {
-        printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR SOURCE FILE BUFFER !!!\n");
-        fclose(src_file);
-        fclose(dst_file);
-        free(line);
-        return -1;
-    }
-
-
     /*** ASSEMBLER ***/
     while (fgets(line, 256, src_file) != NULL)
     {
@@ -537,7 +518,6 @@ int main(int argc, char *argv[])
                 printf("(main) ILLEGAL INSTRUCTION AT LINE %d : \"%s\"\n", line_num, (const char *)token);
                 fclose(dst_file);
                 fclose(src_file);
-                free(src_buffer);
                 free(line);
                 return -1;
             }
@@ -548,7 +528,6 @@ int main(int argc, char *argv[])
                 printf("(main) ILLEGAL DST FIELD AT LINE %d\n", line_num);
                 fclose(dst_file);
                 fclose(src_file);
-                free(src_buffer);
                 free(line);
                 return -1;
             }
@@ -559,7 +538,6 @@ int main(int argc, char *argv[])
                 printf("(main) ILLEGAL SRC FIELD AT LINE %d\n", line_num);
                 fclose(dst_file);
                 fclose(src_file);
-                free(src_buffer);
                 free(line);
                 return -1;
             }
@@ -605,7 +583,6 @@ int main(int argc, char *argv[])
     /*** FILE HANDLING (CLOSING) & FREE BUFFER & PROGRAM EXIT ***/
     fclose(dst_file);
     fclose(src_file);
-    free(src_buffer);
     free(line);
     return 0;
 }
