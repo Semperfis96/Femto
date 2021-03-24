@@ -423,7 +423,7 @@ bool inst_assembler(char *token, uint8_t *inst)
 
 /* [FIX] TODO: FIX INSTRUCTION NOT RECOGNIZE WITHOUT '\n' AFTER IT (LIKE HLT JUST BEFORE END OF FILE) */
 /* [FIX] TODO: ADD LINE NUMBER SUPPORT FOR ERROR MESSAGES */
-/* TODO: ADD SUPPORT FOR COMMENTS */
+/* [FIX] TODO: ADD SUPPORT FOR COMMENTS */
 /* TODO: ADD LABEL SUPPORT (ENABLE MULTI-PASS ASSEMBLING), ADD DIRECTVES SUPPORT (ORG, DB, DW, DD, ETC.) */
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
@@ -512,6 +512,13 @@ int main(int argc, char *argv[])
 
         while (token != NULL)
         {
+            /* DETECT COMMENTS (START BY #) */
+            if (token[0] == '#')
+            {
+                //DEBUG : printf("COMMENT AT LINE %d\n", line_num);
+                break;
+            }
+
             /*** INST ASSEMBLING ***/
             if (inst_assembler(token, &inst))
             {
