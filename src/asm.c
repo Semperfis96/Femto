@@ -522,35 +522,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    // /* LOAD SOURCE FILE INTO A TEXT BUFFER */
-    // if (fread((void *)src_buffer, sizeof(char), (size_t)fsize, src_file) != (size_t)fsize)
-    // {
-    //     printf("(main) ERROR: CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
-    //     fclose(src_file);
-    //     fclose(dst_file);
-    //     free(src_buffer);
-    //     free(line);
-    //     return -1;
-    // }
-
 
     /*** ASSEMBLER ***/
-
-    /* TEST, need to view fgets for line input from buffer or source file */
-    // while (fgets(line, 256, src_file) != NULL)
-    // {
-    //     printf("line %d : \"%s\"\n", line_num, line);
-    //     line_num++;
-    // }
-
-    // if (feof(src_file))
-    // {
-    //    puts("End of file reached");
-    // }
-
-    // return 0;
-
-
     while (fgets(line, 256, src_file) != NULL)
     {
         // printf("line %d : \"%s\"", line_num, line);
