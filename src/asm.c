@@ -421,7 +421,10 @@ bool inst_assembler(char *token, uint8_t *inst)
 }
 
 
-/* TODO: FIX INSTRUCTION NOT RECOGNIZE WITHOUT '\n' AFTER IT (LIKE HLT JUST BEFORE END OF FILE) */
+/* [FIX] TODO: FIX INSTRUCTION NOT RECOGNIZE WITHOUT '\n' AFTER IT (LIKE HLT JUST BEFORE END OF FILE) */
+/* [FIX] TODO: ADD LINE NUMBER SUPPORT FOR ERROR MESSAGES */
+/* TODO: ADD SUPPORT FOR COMMENTS */
+/* TODO: ADD LABEL SUPPORT (ENABLE MULTI-PASS ASSEMBLING), ADD DIRECTVES SUPPORT (ORG, DB, DW, DD, ETC.) */
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
@@ -429,6 +432,7 @@ int main(int argc, char *argv[])
     char    *dst_fname  = NULL;         /* DESTINATION FILE NAME */
     char    *src_buffer = NULL;         /* SOURCE FILE LOAD IN MEMORY POINTER */
     char    *token      = NULL;         /* TOKEN ;-) */
+    char    *line       = NULL;
     FILE    *src_file   = NULL;         /* SOURCE FILE (ASSEMBLY LANGUAGE) */
     FILE    *dst_file   = NULL;         /* DESTINATION FILE (BINARY) */
     long     fsize      = 0L;           /* FILE SIZE */
@@ -439,6 +443,7 @@ int main(int argc, char *argv[])
     uint8_t  dreg       = 0;            /* DESTINATION REGISTER */
     uint8_t  sreg       = 0;            /* SOURCE REGISTER */
     uint16_t addr       = 0;            /* 12BITS ADDRESS */
+    int      line_num   = 1;
 
 
     /*** COMMAND-LINE ARGUMENTS ***/
@@ -473,11 +478,21 @@ int main(int argc, char *argv[])
     }
 
 
+    /* LINE BUFFER */
+    line = malloc(256 * sizeof(char));
+    if (line == NULL)
+    {
+        printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR LINE BUFFER !!!\n");
+        return -1;
+    }
+
+
     /*** FILE HANDLING (OPENING) ***/
     src_file = fopen((const char *)src_fname, "r");
     if (src_file == NULL)
     {
         printf("(main) ERROR : CAN'T OPEN \"%s\" !!!\n", src_fname);
+        free(line);
         return -1;
     }
 
@@ -486,6 +501,7 @@ int main(int argc, char *argv[])
     {
         printf("(main) ERROR : CAN'T OPEN \"%s\" !!!\n", dst_fname);
         fclose(src_file);
+        free(line);
         return -1;
     }
 
@@ -502,86 +518,122 @@ int main(int argc, char *argv[])
         printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR SOURCE FILE BUFFER !!!\n");
         fclose(src_file);
         fclose(dst_file);
+        free(line);
         return -1;
     }
 
-    /* LOAD SOURCE FILE INTO A TEXT BUFFER */
-    if (fread((void *)src_buffer, sizeof(char), (size_t)fsize, src_file) != (size_t)fsize)
-    {
-        printf("(main) ERROR: CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
-        fclose(src_file);
-        fclose(dst_file);
-        free(src_buffer);
-        return -1;
-    }
-
-    /* CLOSE SOURCE FILE AFER LOADING, NO MORE NEED IT */
-    fclose(src_file);
+    // /* LOAD SOURCE FILE INTO A TEXT BUFFER */
+    // if (fread((void *)src_buffer, sizeof(char), (size_t)fsize, src_file) != (size_t)fsize)
+    // {
+    //     printf("(main) ERROR: CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
+    //     fclose(src_file);
+    //     fclose(dst_file);
+    //     free(src_buffer);
+    //     free(line);
+    //     return -1;
+    // }
 
 
     /*** ASSEMBLER ***/
-    token = strtok(src_buffer, " ,\n");
-    while (token != NULL)
+
+    /* TEST, need to view fgets for line input from buffer or source file */
+    // while (fgets(line, 256, src_file) != NULL)
+    // {
+    //     printf("line %d : \"%s\"\n", line_num, line);
+    //     line_num++;
+    // }
+
+    // if (feof(src_file))
+    // {
+    //    puts("End of file reached");
+    // }
+
+    // return 0;
+
+
+    while (fgets(line, 256, src_file) != NULL)
     {
-        /*** INST ASSEMBLING ***/
-        if (inst_assembler(token, &inst))
+        // printf("line %d : \"%s\"", line_num, line);
+        token = strtok(line, " ,\n");
+
+        while (token != NULL)
         {
-            printf("(main) ILLEGAL INSTRUCTION : \"%s\"\n", (const char *)token);
-            fclose(dst_file);
-            free(src_buffer);
-            return -1;
+            /*** INST ASSEMBLING ***/
+            if (inst_assembler(token, &inst))
+            {
+                printf("(main) ILLEGAL INSTRUCTION AT LINE %d : \"%s\"\n", line_num, (const char *)token);
+                fclose(dst_file);
+                fclose(src_file);
+                free(src_buffer);
+                free(line);
+                return -1;
+            }
+
+            /*** DST ASSEMBLING ***/
+            if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
+            {
+                printf("(main) ILLEGAL DST FIELD AT LINE %d\n", line_num);
+                fclose(dst_file);
+                fclose(src_file);
+                free(src_buffer);
+                free(line);
+                return -1;
+            }
+
+            /*** SRC ASSEMBLING ***/
+            if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
+            {
+                printf("(main) ILLEGAL SRC FIELD AT LINE %d\n", line_num);
+                fclose(dst_file);
+                fclose(src_file);
+                free(src_buffer);
+                free(line);
+                return -1;
+            }
+
+            //DEBUG
+            printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X; DATA = 0x%02X; ADDR = 0x%03X\n", inst, adrm, dreg, sreg, data, addr);
+
+
+            /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
+            f[0] = inst | (adrm << 7);
+            f[1] = (dreg << 6) | (sreg << 4) | ((addr & 0xF00) >> 8);
+            f[2] = data | (addr & 0x0FF);
+
+            //DEBUG
+            printf("F[0] = 0x%02X; F[1] = 0x%02X; F[2] = 0x%02X\n", f[0], f[1], f[2]);
+
+            if (fwrite((const void *)f, 1, 3, dst_file) < 3)
+            {
+                printf("(main) ERROR DURING WRITING IN \"%s\"\n", dst_fname);
+            }
+
+
+            /*** RESET VARIABLES BECAUSE THERE ARE USED PER INSTRUCTION ASSEMBLING ***/
+            inst  = 0;
+            dreg  = 0;
+            sreg  = 0;
+            addr  = 0;
+            data  = 0;
+            adrm  = ADRM_IMM;
+            token = get_token;
         }
 
-        /*** DST ASSEMBLING ***/
-        if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
-        {
-            printf("(main) ILLEGAL DST FIELD\n");
-            fclose(dst_file);
-            free(src_buffer);
-            return -1;
-        }
-
-        /*** SRC ASSEMBLING ***/
-        if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
-        {
-            printf("(main) ILLEGAL SRC FIELD\n");
-            fclose(dst_file);
-            free(src_buffer);
-            return -1;
-        }
-
-        //DEBUG
-        printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X; DATA = 0x%02X; ADDR = 0x%03X\n", inst, adrm, dreg, sreg, data, addr);
+        line_num++;
+    }
 
 
-        /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
-        f[0] = inst | (adrm << 7);
-        f[1] = (dreg << 6) | (sreg << 4) | ((addr & 0xF00) >> 8);
-        f[2] = data | (addr & 0x0FF);
-
-        //DEBUG
-        printf("F[0] = 0x%02X; F[1] = 0x%02X; F[2] = 0x%02X\n", f[0], f[1], f[2]);
-
-        if (fwrite((const void *)f, 1, 3, dst_file) < 3)
-        {
-            printf("(main) ERROR DURING WRITING IN \"%s\"\n", dst_fname);
-        }
-
-
-        /*** RESET VARIABLES BECAUSE THERE ARE USED PER INSTRUCTION ASSEMBLING ***/
-        inst  = 0;
-        dreg  = 0;
-        sreg  = 0;
-        addr  = 0;
-        data  = 0;
-        adrm  = ADRM_IMM;
-        token = get_token;
+    if (feof(src_file))
+    {
+       puts("End of file reached");
     }
 
 
     /*** FILE HANDLING (CLOSING) & FREE BUFFER & PROGRAM EXIT ***/
     fclose(dst_file);
+    fclose(src_file);
     free(src_buffer);
+    free(line);
     return 0;
 }
 /*** CODE ENDING ***/
