@@ -48,12 +48,12 @@ typedef enum inst
     ADD = 0x5,
     SUB = 0x6,
     CMP = 0x7,
-    JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE */
-    JN  = 0x9, /* JUMP IF NEGATIVE */
-    JC  = 0xA, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) */
-    JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) */
-    JBE = 0xC, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) */
-    JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) */
+    JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE "x == y"*/
+    JN  = 0x9, /* JUMP IF NEGATIVE "x < 0" */
+    JC  = 0xA, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) "x < y" */
+    JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) " x >= y"*/
+    JBE = 0xC, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) "x <= y */
+    JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) "x > y" */
     JMP = 0xE
 } inst_t;
 
@@ -137,6 +137,7 @@ bool is_reg(char *token, int *range)
         i++;
     }
 
+    /* THERE IS ONLY 4 REGISTERS THAT PROGRAMMERS CAN DIRECTLY ADDRESSING */
     if (i < 4)
     {
         *range = i;
@@ -411,7 +412,7 @@ bool inst_assembler(char *token, uint8_t *inst)
     {
         *inst = inst_trans_table[i].value;
         // DEBUG
-        printf("INSTRUCTION: %s\n", inst_trans_table[i].str);
+        //printf("INSTRUCTION: %s\n", inst_trans_table[i].str);
         return false;
     }
     else
@@ -508,7 +509,6 @@ int main(int argc, char *argv[])
     /*** ASSEMBLER ***/
     while (fgets(line, 256, src_file) != NULL)
     {
-        // printf("line %d : \"%s\"", line_num, line);
         token = strtok(line, " ,\n");
 
         while (token != NULL)
@@ -516,7 +516,6 @@ int main(int argc, char *argv[])
             /* DETECT COMMENTS (START BY #) */
             if (token[0] == '#')
             {
-                //DEBUG : printf("COMMENT AT LINE %d\n", line_num);
                 break;
             }
 
@@ -551,7 +550,7 @@ int main(int argc, char *argv[])
             }
 
             //DEBUG
-            printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X; DATA = 0x%02X; ADDR = 0x%03X\n", inst, adrm, dreg, sreg, data, addr);
+            //printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X; DATA = 0x%02X; ADDR = 0x%03X\n", inst, adrm, dreg, sreg, data, addr);
 
 
             /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
@@ -560,7 +559,7 @@ int main(int argc, char *argv[])
             f[2] = data | (addr & 0x0FF);
 
             //DEBUG
-            printf("F[0] = 0x%02X; F[1] = 0x%02X; F[2] = 0x%02X\n", f[0], f[1], f[2]);
+            //printf("F[0] = 0x%02X; F[1] = 0x%02X; F[2] = 0x%02X\n", f[0], f[1], f[2]);
 
             if (fwrite((const void *)f, 1, 3, dst_file) < 3)
             {
@@ -582,9 +581,10 @@ int main(int argc, char *argv[])
     }
 
 
-    if (feof(src_file))
+    if (!feof(src_file))
     {
-       puts("End of file reached");
+       printf("(main) ERROR WHILE READING \"%s\", NOT EOF !!!", src_fname);
+       return -1;
     }
 
 
