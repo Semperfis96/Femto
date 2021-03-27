@@ -49,12 +49,12 @@ typedef enum inst
     ADD = 0x5,
     SUB = 0x6,
     CMP = 0x7,
-    JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE */
-    JN  = 0x9, /* JUMP IF NEGATIVE */
-    JC  = 0xA, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) */
-    JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) */
-    JBE = 0xC, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) */
-    JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) */
+    JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE "x == y"*/
+    JN  = 0x9, /* JUMP IF NEGATIVE "x < 0" */
+    JC  = 0xA, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) "x < y" */
+    JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) " x >= y"*/
+    JBE = 0xC, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) "x <= y */
+    JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) "x > y" */
     JMP = 0xE
 } inst_t;
 
@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
             
             case ADD:
                 /* ADD REG, REG */
-                temp = r[dreg] + r[sreg];
+                temp = (int)r[dreg] + (int)r[sreg];
                 flags = test_update_flags(temp);
                 temp = r[dreg];
                 r[dreg] += r[sreg];
@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
             
             case SUB:
                 /* SUB REG, REG */
-                temp = r[dreg] - r[sreg];
+                temp = (int)r[dreg] - (int)r[sreg];
                 flags = test_update_flags(temp);
                 temp = r[dreg];
                 r[dreg] -= r[sreg];
@@ -328,6 +328,19 @@ int main(int argc, char *argv[])
                 else
                 {
                     printf("NOT TAKEN JZ/JE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                break;
+            
+            case JN:
+                /* JN IMM */
+                if (NFLAG == 1)
+                {
+                    pc = addr;
+                    printf("JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                else
+                {
+                    printf("NOT TAKEN JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
                 }
                 break;
 
