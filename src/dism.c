@@ -34,6 +34,8 @@
     #include "common.h"
 #endif
 
+#define DISM_BUFFER 32
+
 
 /*** CODE BEGINNING ***/
 void cmd_help(void)
@@ -57,9 +59,56 @@ void cmd_version(void)
 }
 
 
+const char * disasm_inst(uint8_t byte)
+{
+    int i = 0;
+
+    /* FIND THE INSTRUCTION IN THE TRANSLATION TABLE */
+    while (inst_trans_table[i].value != byte)
+    {
+        i++;
+    }
+
+    return inst_trans_table[i].str;
+}
+
+
+const char * disasm_dest(uint8_t byte)
+{
+    return '\0';
+}
+
+
+const char * disasm_src(uint8_t byte)
+{
+    return '\0';
+}
+
+
+void disasm(uint8_t *buffer, uint16_t pc, char *result)
+{
+    uint8_t f[3] = {0};
+
+    /* RESET RESULT STRING */
+    memset((void *)result, 0, DISM_BUFFER);
+
+    f[0] = buffer[pc];
+    f[1] = buffer[(pc + 1)];
+    f[2] = buffer[(pc + 2)];
+
+    strncat(result, disasm_inst(f[0]), (size_t)DISM_BUFFER);
+    //strncat(result, disasm_dest(f[1]), (size_t)DISM_BUFFER);
+    //strncat(result, disasm_src(f[2]),  (size_t)DISM_BUFFER);
+}
+
+
 int main(int argc, char *argv[])
 {
-    char *src_fname = NULL;
+    char    *src_fname = NULL;
+    FILE    *src_file  = NULL;
+    uint8_t *src_bin   = NULL;
+    long     src_size  = 0L;
+    char    *result    = NULL;
 
 
     /*** COMMAND-LINE ARGUMENTS ***/
@@ -86,6 +135,56 @@ int main(int argc, char *argv[])
             i++;
             src_fname = argv[i];
         }
+    }
+
+
+    /* ALLOCATE MEMORY FOR RESULT STRING */
+    result = malloc(DISM_BUFFER * sizeof(char));
+    if (result == NULL)
+    {
+        printf("ERROR (main) : CAN'T ALLOCATE MEM FOR BUFFER !!!\n");
+        return -1;
+    }
+
+
+    /*** FILE LOADING ***/
+    src_file = fopen(src_fname, "rb");
+    if (src_file == NULL)
+    {
+        printf("ERROR (main): CAN'T OPEN FILE \"%s\" !!!\n", src_fname);
+        exit(-1);
+    }
+
+    /* GET FILE SIZE */
+    fseek(src_file, 0L, SEEK_END);
+    src_size = ftell(src_file);
+    fseek(src_file, 0L, SEEK_SET);
+
+    /* ALLOC MEMORY FOR THE BUFFER */
+    src_bin = malloc((int)src_size * sizeof(uint8_t));
+    if (src_bin == NULL)
+    {
+        printf("ERROR (main) : CAN'T ALLOC MEM FOR BUFFER !!!\n");
+        fclose(src_file);
+        exit(-1);
+    }
+
+    /* READ BINARY FILE*/
+    if (fread((void *)src_bin, sizeof(uint8_t), (size_t)src_size, src_file) != (size_t)src_size)
+    {
+        printf("ERROR (main): CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
+        fclose(src_file);
+        exit(-1);
+    }
+
+    fclose(src_file);
+
+
+    /*** DISASSEMBLING ***/
+    for (int i = 0; i < src_size; i += 3)
+    {
+        disasm(src_bin, i, result);
+        printf("%03X : %02X%02X%02X\t%s\n", i, src_bin[i], src_bin[i+1], src_bin[i+2], result);
     }
 
     return 0;
