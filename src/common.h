@@ -1,9 +1,13 @@
 #ifndef COMMON_H_
 #define COMMON_H_
 
+#include <stdint.h>
+#include <stdbool.h>
+
 
 #define FEMTO_VERSION "1.0.0"
 #define ASM_VERSION   "1.0.0"
+#define DISM_VERSION  "1.0.0"
 
 #define CFLAG ((flags >>  1) & 0x1)
 #define ZFLAG  (flags & 0x1)
