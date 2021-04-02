@@ -167,14 +167,14 @@ void disasm_src(uint8_t finst, uint8_t dst, uint8_t data, char *result)
     {
         return;
     }
-    /* REGISTER DEST FIELD */
+    /* REGISTER SRC FIELD */
     else if(inst_trans_table[inst].src == REG)
     {
         temp = (dst & 0xC0) >> 6;
         disasm_reg((uint8_t)temp, result);
         return;
     }
-    /* IMMEDIATE DEST FIELD */
+    /* IMMEDIATE SRC FIELD */
     else if(inst_trans_table[inst].src == IMM)
     {
         /* VERIFY IF THIS IS AN ADDRESS FIELD OR NOT */
@@ -191,7 +191,7 @@ void disasm_src(uint8_t finst, uint8_t dst, uint8_t data, char *result)
             strncat(result, (const char *)tmp_result, DISM_BUFFER);
         }
     }
-    /* REGISTER OR IMMEDIATE DEST FIELD */
+    /* REGISTER OR IMMEDIATE SRC FIELD */
     else if(inst_trans_table[inst].src == BOTH)
     {
         /* VERIFY THE ADDRESSING MODE OF THE INSTRUCTION */
@@ -231,23 +231,27 @@ void disasm(uint8_t *buffer, uint16_t pc, char *result)
     /* RESET RESULT STRING */
     memset((void *)result, 0, DISM_BUFFER);
 
+    /* EXTRACT FIELD FROM RAW BINARY */
     f[0] = buffer[pc];
     f[1] = buffer[(pc + 1)];
     f[2] = buffer[(pc + 2)];
     inst = (f[0] & 0x7F);
 
+    /* DISASSEMBLE INSTRUCTION */
     disasm_inst(inst, result);
     strncat(result, " ", DISM_BUFFER);
 
-    disasm_dest(f[0], f[1], f[2], result);
+    /* DISASSEMBLE IF NECESSARY DESTINATION FIELD & IF NECESSARY SRC FIELD */
     if (!(inst_trans_table[inst].dst == NONE) && !(inst_trans_table[inst].src == NONE))
     {
+        disasm_dest(f[0], f[1], f[2], result);
         strncat(result, ", ", DISM_BUFFER);
         disasm_src(f[0],  f[2], f[2], result);
     }
 }
 
 
+/*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
     char    *src_fname = NULL;
@@ -284,7 +288,7 @@ int main(int argc, char *argv[])
     }
 
 
-    /* ALLOCATE MEMORY FOR RESULT STRING */
+    /*** ALLOCATE MEMORY FOR DISASSEMBLER RESULT STRING ***/
     result = malloc(DISM_BUFFER * sizeof(char));
     if (result == NULL)
     {
@@ -306,7 +310,7 @@ int main(int argc, char *argv[])
     src_size = ftell(src_file);
     fseek(src_file, 0L, SEEK_SET);
 
-    /* ALLOC MEMORY FOR THE BUFFER */
+    /* ALLOC MEMORY FOR THE FILE BUFFER */
     src_bin = malloc((int)src_size * sizeof(uint8_t));
     if (src_bin == NULL)
     {
@@ -315,7 +319,7 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
-    /* READ BINARY FILE*/
+    /* READ BINARY FILE & CLOSE IT */
     if (fread((void *)src_bin, sizeof(uint8_t), (size_t)src_size, src_file) != (size_t)src_size)
     {
         printf("ERROR (main): CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", src_fname);
@@ -327,6 +331,7 @@ int main(int argc, char *argv[])
 
 
     /*** DISASSEMBLING ***/
+    /* FORMAT: "ADDRESS : BINARY_INSTRUCTION    DIASSEMBLING_RESULT" */
     for (int i = 0; i < src_size; i += 3)
     {
         disasm(src_bin, i, result);
@@ -335,3 +340,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+/*** CODE ENDING ***/
