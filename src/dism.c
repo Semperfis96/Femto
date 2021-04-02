@@ -240,7 +240,7 @@ void disasm(uint8_t *buffer, uint16_t pc, char *result)
     strncat(result, " ", DISM_BUFFER);
 
     disasm_dest(f[0], f[1], f[2], result);
-    if (!inst_trans_table[inst].dst == NONE)
+    if (!(inst_trans_table[inst].dst == NONE) && !(inst_trans_table[inst].src == NONE))
     {
         strncat(result, ", ", DISM_BUFFER);
         disasm_src(f[0],  f[2], f[2], result);
