@@ -59,7 +59,7 @@ void cmd_version(void)
 }
 
 
-const char * disasm_inst(uint8_t byte)
+void disasm_inst(uint8_t byte, char *result)
 {
     int i = 0;
 
@@ -69,25 +69,164 @@ const char * disasm_inst(uint8_t byte)
         i++;
     }
 
-    return inst_trans_table[i].str;
+    strncat(result, inst_trans_table[i].str, DISM_BUFFER);
 }
 
 
-const char * disasm_dest(uint8_t byte)
+void disasm_reg(uint8_t reg, char *result)
 {
-    return '\0';
+    int i = 0;
+
+    /* FIND THE REGISTER IN THE TRANSLATION TABLE */
+    while (reg_trans_table[i].value != reg)
+    {
+        i++;
+    }
+
+    strncat(result, reg_trans_table[i].str, DISM_BUFFER);
 }
 
 
-const char * disasm_src(uint8_t byte)
+void disasm_dest(uint8_t finst, uint8_t dst, uint8_t data, char *result)
 {
-    return '\0';
+    int  temp   = 0;
+    char tmp_str[4];
+    char tmp_result[8] = "0x";
+    uint8_t inst = finst & 0x7F;
+
+    /* NOTHING TO DO, NO FIELD */
+    if (inst_trans_table[inst].dst == NONE)
+    {
+        return;
+    }
+    /* REGISTER DEST FIELD */
+    else if(inst_trans_table[inst].dst == REG)
+    {
+        temp = (dst & 0xC0) >> 6;
+        disasm_reg((uint8_t)temp, result);
+        return;
+    }
+    /* IMMEDIATE DEST FIELD */
+    else if(inst_trans_table[inst].dst == IMM)
+    {
+        /* VERIFY IF THIS IS AN ADDRESS FIELD OR NOT */
+        if (inst_trans_table[inst].is_addr)
+        {
+            snprintf(tmp_str, 4, "%03X", ((dst & 0x0F) << 8) | data);
+            strncat(tmp_result, (const char *)tmp_str, 8);
+            strncat(result, (const char *)tmp_result, DISM_BUFFER);
+        }
+        else
+        {
+            snprintf(tmp_str, 4, "%02X", data);
+            strncat(tmp_result, (const char *)tmp_str, 8);
+            strncat(result, (const char *)tmp_result, DISM_BUFFER);
+        }
+    }
+    /* REGISTER OR IMMEDIATE DEST FIELD */
+    else if(inst_trans_table[inst].dst == BOTH)
+    {
+        /* VERIFY THE ADDRESSING MODE OF THE INSTRUCTION */
+        if (((finst & 0x80) >> 7) == ADRM_IMM)
+        {
+            /* IMMEDIATE ADDRESSING MODE */
+            /* VERIFY IF THIS IS AN ADDRESS FIELD OR NOT */
+            if (inst_trans_table[inst].is_addr)
+            {
+                snprintf(tmp_str, 4, "%03X", ((dst & 0x0F) << 8) | data);
+                strncat(tmp_result, (const char *)tmp_str, 8);
+                strncat(result, (const char *)tmp_result, DISM_BUFFER);
+            }
+            else
+            {
+                snprintf(tmp_str, 4, "%02X", data);
+                strncat(tmp_result, (const char *)tmp_str, 8);
+                strncat(result, (const char *)tmp_result, DISM_BUFFER);
+            }
+        }
+        else
+        {
+            /* REGISTER ADDRESSING MODE */
+            temp = (dst & 0xC0) >> 6;
+            disasm_reg((uint8_t)temp, result);
+            return;
+        }
+    }
+}
+
+
+void disasm_src(uint8_t finst, uint8_t dst, uint8_t data, char *result)
+{
+    int  temp   = 0;
+    char tmp_str[4];
+    char tmp_result[8] = "0x";
+    uint8_t inst = finst & 0x7F;
+
+    /* NOTHING TO DO, NO FIELD */
+    if (inst_trans_table[inst].src == NONE)
+    {
+        return;
+    }
+    /* REGISTER DEST FIELD */
+    else if(inst_trans_table[inst].src == REG)
+    {
+        temp = (dst & 0xC0) >> 6;
+        disasm_reg((uint8_t)temp, result);
+        return;
+    }
+    /* IMMEDIATE DEST FIELD */
+    else if(inst_trans_table[inst].src == IMM)
+    {
+        /* VERIFY IF THIS IS AN ADDRESS FIELD OR NOT */
+        if (inst_trans_table[inst].is_addr)
+        {
+            snprintf(tmp_str, 4, "%03X", ((dst & 0x0F) << 8) | data);
+            strncat(tmp_result, (const char *)tmp_str, 8);
+            strncat(result, (const char *)tmp_result, DISM_BUFFER);
+        }
+        else
+        {
+            snprintf(tmp_str, 4, "%02X", data);
+            strncat(tmp_result, (const char *)tmp_str, 8);
+            strncat(result, (const char *)tmp_result, DISM_BUFFER);
+        }
+    }
+    /* REGISTER OR IMMEDIATE DEST FIELD */
+    else if(inst_trans_table[inst].src == BOTH)
+    {
+        /* VERIFY THE ADDRESSING MODE OF THE INSTRUCTION */
+        if (((finst & 0x80) >> 7) == ADRM_IMM)
+        {
+            /* IMMEDIATE ADDRESSING MODE */
+            /* VERIFY IF THIS IS AN ADDRESS FIELD OR NOT */
+            if (inst_trans_table[inst].is_addr)
+            {
+                snprintf(tmp_str, 4, "%03X", ((dst & 0x0F) << 8) | data);
+                strncat(tmp_result, (const char *)tmp_str, 8);
+                strncat(result, (const char *)tmp_result, DISM_BUFFER);
+            }
+            else
+            {
+                snprintf(tmp_str, 4, "%02X", data);
+                strncat(tmp_result, (const char *)tmp_str, 8);
+                strncat(result, (const char *)tmp_result, DISM_BUFFER);
+            }
+        }
+        else
+        {
+            /* REGISTER ADDRESSING MODE */
+            temp = (dst & 0xC0) >> 6;
+            disasm_reg((uint8_t)temp, result);
+            return;
+        }
+    }
 }
 
 
 void disasm(uint8_t *buffer, uint16_t pc, char *result)
 {
     uint8_t f[3] = {0};
+    uint8_t inst = 0;
 
     /* RESET RESULT STRING */
     memset((void *)result, 0, DISM_BUFFER);
@@ -95,10 +234,17 @@ void disasm(uint8_t *buffer, uint16_t pc, char *result)
     f[0] = buffer[pc];
     f[1] = buffer[(pc + 1)];
     f[2] = buffer[(pc + 2)];
+    inst = (f[0] & 0x7F);
 
-    strncat(result, disasm_inst(f[0]), (size_t)DISM_BUFFER);
-    //strncat(result, disasm_dest(f[1]), (size_t)DISM_BUFFER);
-    //strncat(result, disasm_src(f[2]),  (size_t)DISM_BUFFER);
+    disasm_inst(inst, result);
+    strncat(result, " ", DISM_BUFFER);
+
+    disasm_dest(f[0], f[1], f[2], result);
+    if (!inst_trans_table[inst].dst == NONE)
+    {
+        strncat(result, ", ", DISM_BUFFER);
+        disasm_src(f[0],  f[2], f[2], result);
+    }
 }
 
 
