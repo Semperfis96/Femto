@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifndef _ASM_
     #define _ASM_
@@ -446,6 +447,13 @@ int main(int argc, char *argv[])
     /*** ASSEMBLER ***/
     while (fgets(line, 256, src_file) != NULL)
     {
+        /* CONVERT STRING TO UPPER TO SUPPORT LOWER CASE IN SOURCE FILE */
+        for (int i = 0; i < 256; i++)
+        {
+            line[i] = toupper(line[i]);
+        }
+
+        /* GET TOKEN */
         token = strtok(line, " ,\n");
 
         while (token != NULL)
