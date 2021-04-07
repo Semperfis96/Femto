@@ -27,10 +27,11 @@ typedef enum inst
     ADD = 0x5,
     SUB = 0x6,
     CMP = 0x7,
-    JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE "x == y"*/
+    JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE "x == y" */
+    JNZ = 0xF, /* JUMP IF NOT ZERO; SAME AS JNE "x != y" */
     JN  = 0x9, /* JUMP IF NEGATIVE "x < 0" */
     JC  = 0xA, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) "x < y" */
-    JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) " x >= y"*/
+    JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) " x >= y" */
     JBE = 0xC, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) "x <= y */
     JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) "x > y" */
     JMP = 0xE
@@ -67,6 +68,7 @@ typedef enum inst
         {"CMP", CMP, REG,  REG,  false},
         {"JMP", JMP, IMM,  NONE, true},
         {"JZ",  JZ , IMM,  NONE, true},
+        {"JNZ", JNZ, IMM,  NONE, true},
         {"JN",  JN , IMM,  NONE, true},
         {"JC",  JC , IMM,  NONE, true},
         {"JNC", JNC, IMM,  NONE, true},

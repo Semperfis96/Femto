@@ -322,6 +322,45 @@ int main(int argc, char *argv[])
                     printf("NOT TAKEN JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
                 }
                 break;
+            
+             case JNZ:
+                /* JNZ/JNE IMM */
+                if (ZFLAG == 0)
+                {
+                    pc = addr;
+                    printf("JNZ/JNE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                else
+                {
+                    printf("NOT TAKEN JNZ/JNE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                break;
+            
+            case JC:
+                /* JC IMM */
+                if (CFLAG == 1)
+                {
+                    pc = addr;
+                    printf("JC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                else
+                {
+                    printf("NOT TAKEN JC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                break;
+            
+            case JNC:
+                /* JNC IMM */
+                if (CFLAG == 0)
+                {
+                    pc = addr;
+                    printf("JNC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                else
+                {
+                    printf("NOT TAKEN JNC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+                }
+                break;
 
             default:
                 printf("ILLEGAL OPCODE 0x%02X AT 0x%03X\n", inst, (pc - 3) % 0xFFF);
