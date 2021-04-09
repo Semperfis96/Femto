@@ -16,7 +16,6 @@
 #define ADRM_IMM  false
 #define ADRM_REG  true
 
-
 typedef enum inst
 {
     HLT = 0x0,
@@ -36,6 +35,29 @@ typedef enum inst
     JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) "x > y" */
     JMP = 0xE
 } inst_t;
+
+
+uint8_t test_update_flags(int testing);
+void print_flags(uint8_t flags);
+
+
+#ifdef _EMU_
+    /* HACK: Make variable globals !!! */
+    /* TODO: Make a nice structure */
+    uint16_t  pc    =  0x0;      /* PROGRAM COUNTER (12BITS) */
+    uint8_t   r[4]  = {0x0};     /* GP REGISTERS (R0, R1, R2 AND R3) */
+    uint8_t   flags =  0x0;      /* FLAGS REGISTER */
+    uint8_t   f[3]  = {0x0};     /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
+    uint8_t   inst  = 0;         /* INSTRUCTION CODE */
+    uint8_t  *ram   = NULL;      /* VIRTUAL COMPUTER RAM, 4KBs (0x000 - 0xFFF) */
+    bool      adrm  = ADRM_IMM;  /* ADDRESSING MODE */
+    bool      halt  = false;     /* CPU IS HALT OR NOT */
+    uint8_t   data  = 0;         /* 8BITS DATA */
+    uint16_t  addr  = 0;         /* 12BITS ADDRESS */
+    uint8_t   dreg  = 0;         /* DESTINATION REGISTER */
+    uint8_t   sreg  = 0;         /* SOURCE REGISTER */
+    int       temp  = 0;
+#endif
 
 
 #ifdef _ASM_

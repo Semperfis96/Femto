@@ -7,6 +7,7 @@ SRC_DIR   = ./src
 
 default: all
 
+
 $(BUILD_DIR)/femto.o: $(SRC_DIR)/femto.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 

@@ -32,6 +32,10 @@
 #include <string.h>
 #include <ctype.h>
 
+#ifdef _EMU_
+    #undef _EMU_
+#endif
+
 #ifndef _ASM_
     #define _ASM_
     #include "common.h"

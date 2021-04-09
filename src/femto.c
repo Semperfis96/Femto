@@ -30,14 +30,20 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include "opcode.h"
 
 #ifdef _ASM_
     #undef _ASM_
 #endif
 
-#include "common.h"
+#ifndef _EMU_
+#define _EMU_
+    #include "common.h"
+#endif
 
 
+
+/*** CMD FUNCTIONS ***/
 void cmd_help(void)
 {
     printf("Usage: femto [OPTION]\n");
@@ -57,7 +63,10 @@ void cmd_version(void)
     printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>;\n");
     printf("This is free software, and you are welcome to redistribute it under certain conditions;\n");
 }
+/*** CMD FUNCTIONS END ***/
 
+
+/*** HELPER FUNCTIONS ***/
 int rom_load(const char *rom_file, uint8_t *ram)
 {
     FILE *rom  = NULL;
@@ -118,24 +127,12 @@ void print_flags(uint8_t flags)
 {
     printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
 }
+/*** HELPER FUNCTIONS END ***/
 
 
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
-    bool      halt  = false;
-    uint8_t  *ram   = NULL;      /* VIRTUAL COMPUTER RAM, 4KBs (0x000 - 0xFFF) */
-    uint16_t  pc    =  0x0;      /* PROGRAM COUNTER (12BITS) */
-    uint8_t   r[4]  = {0x0};     /* GP REGISTERS (R0, R1, R2 AND R3) */
-    uint8_t   flags =  0x0;      /* FLAGS REGISTER */
-    uint8_t   f[3]  = {0x0};     /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
-    uint8_t   inst  = 0;         /* INSTRUCTION CODE */
-    bool      adrm  = ADRM_IMM;  /* ADDRESSING MODE */
-    uint8_t   data  = 0;         /* 8BITS DATA */
-    uint16_t  addr  = 0;         /* 12BITS ADDRESS */
-    uint8_t   dreg  = 0;         /* DESTINATION REGISTER */
-    uint8_t   sreg  = 0;         /* SOURCE REGISTER */
-    int       temp  = 0;
     char     *rom   = NULL;
 
     /*** COMMAND-LINE ARGUMENTS ***/
@@ -199,174 +196,8 @@ int main(int argc, char *argv[])
         data =   f[2];
         addr = ((f[1] & 0x0F) << 8) | f[2];
 
-        /* EXECUTE INSTRUCTION */
-        switch((inst_t)inst)
-        {
-            case HLT:
-                printf("HLT INSTRUCTION AT 0x%03X\n", (pc - 3) % 0xFFF);
-                halt = true;
-                break;
-            
-            case LDR:
-                /* LDR DREG, SREG | IMM */
-                if (adrm == ADRM_IMM)
-                {
-                    r[dreg] = data;
-                    printf("LDR: R%d = 0x%02X\n", dreg, r[dreg]);
-                }
-                else if (adrm == ADRM_REG)
-                {
-                    r[dreg] = r[sreg];
-                    printf("LDR: R%d = R%d (0x%02X)\n", dreg, sreg, r[sreg]);
-                }
-                break;
-            
-            case LDM:
-                /* LDR DREG, SREG | IMM */
-                if (adrm == ADRM_IMM)
-                {
-                    r[dreg] = ram[addr];
-                    printf("LDM: R%d = 0x%02X (RAM[0x%03X])\n", dreg, r[dreg], addr);
-                }
-                else if (adrm == ADRM_REG)
-                {
-                    r[dreg] = ram[r[sreg]];
-                    printf("LDM: R%d = 0x%02X (RAM[R%d] (0x%02X))\n", dreg, r[dreg], sreg, r[sreg]);
-                }
-                break;
-            
-            case STI:
-                /* STI REG, IMM */
-                if (adrm == ADRM_IMM)
-                {
-                    ram[r[dreg]] = data;
-                    printf("STI: RAM[R%d (0x%02X)] = 0x%02X\n", dreg, r[dreg], ram[r[dreg]]);
-                }
-                else
-                {
-                    printf("ILLEGAL ADDRESSING MODES (REGISTER) FOR STI AT 0x%03X\n", (pc - 3) % 0xFFF);
-                    halt = true;
-                }
-                break;
-            
-            case STR:
-                /* STM IMM | REG, REG */
-                if (adrm == ADRM_IMM)
-                {
-                    ram[addr] = r[sreg];
-                    printf("STR: RAM[0x%03X] = 0x%02X (R%d (0x%02X))\n", addr, ram[addr], sreg, r[sreg]);
-                }
-                else if (adrm == ADRM_REG)
-                {
-                    ram[r[dreg]] = r[sreg];
-                    printf("STR: RAM[R%d (0x%02X)] = 0x%02X (R%d (0x%02X))\n", dreg, r[dreg], ram[r[dreg]], sreg, r[sreg]);
-                }
-                break;
-            
-            case ADD:
-                /* ADD REG, REG */
-                temp = (int)r[dreg] + (int)r[sreg];
-                flags = test_update_flags(temp);
-                temp = r[dreg];
-                r[dreg] += r[sreg];
-                printf("ADD: R%d (0x%02X) = R%d (0x%02X) + R%d (0x%02X)\n", dreg, r[dreg], dreg, r[dreg] - r[sreg], sreg, r[sreg]);
-                print_flags(flags);
-                break;
-            
-            case SUB:
-                /* SUB REG, REG */
-                temp = (int)r[dreg] - (int)r[sreg];
-                flags = test_update_flags(temp);
-                temp = r[dreg];
-                r[dreg] -= r[sreg];
-                printf("SUB: R%d (0x%02X) = R%d (0x%02X) - R%d (0x%02X)\n", dreg, r[dreg], dreg, temp, sreg, r[sreg]);
-                print_flags(flags);
-                break;
-            
-            case CMP:
-                /* CMP REG, REG */
-                temp = r[dreg] - r[sreg];
-                flags = test_update_flags(temp);
-                printf("CMP: R%d (0x%02X), R%d (0x%02X)\n", dreg, r[dreg], sreg, r[sreg]);
-                print_flags(flags);
-                break;
-            
-            case JMP:
-                /* JMP IMM */
-                pc = addr;
-                printf("JMP: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                break;
-            
-            case JZ:
-                /* JZ/JE IMM */
-                if (ZFLAG == 1)
-                {
-                    pc = addr;
-                    printf("JZ/JE: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                else
-                {
-                    printf("NOT TAKEN JZ/JE: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                break;
-            
-            case JN:
-                /* JN IMM */
-                if (NFLAG == 1)
-                {
-                    pc = addr;
-                    printf("JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                else
-                {
-                    printf("NOT TAKEN JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                break;
-            
-             case JNZ:
-                /* JNZ/JNE IMM */
-                if (ZFLAG == 0)
-                {
-                    pc = addr;
-                    printf("JNZ/JNE: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                else
-                {
-                    printf("NOT TAKEN JNZ/JNE: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                break;
-            
-            case JC:
-                /* JC IMM */
-                if (CFLAG == 1)
-                {
-                    pc = addr;
-                    printf("JC: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                else
-                {
-                    printf("NOT TAKEN JC: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                break;
-            
-            case JNC:
-                /* JNC IMM */
-                if (CFLAG == 0)
-                {
-                    pc = addr;
-                    printf("JNC: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                else
-                {
-                    printf("NOT TAKEN JNC: 0x%03X (PC = 0x%03X)\n", addr, pc);
-                }
-                break;
-
-            default:
-                printf("ILLEGAL OPCODE 0x%02X AT 0x%03X\n", inst, (pc - 3) % 0xFFF);
-                halt = true;
-                break;
-        }
+        /* EXECUTE INSTRUCTION, CALL THE APPROPRIATE FUNCTION THAT EMULATE THE OPCODE */
+        (*OpcodeFunc[inst])();
         temp = 0;
     }
 
