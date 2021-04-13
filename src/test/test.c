@@ -55,11 +55,47 @@ void cmd_version(void)
 /*** CMD FUNCTIONS END ***/
 
 
+void ResetVar(void)
+{
+    pc    = 0x0;       /* PROGRAM COUNTER (12BITS) */
+    r[0]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    r[1]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    r[2]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    r[3]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    flags = 0x0;       /* FLAGS REGISTER */
+    adrm  = ADRM_IMM;  /* ADDRESSING MODE */
+    halt  = false;     /* CPU IS HALT OR NOT */
+    data  = 0;         /* 8BITS DATA */
+    addr  = 0;         /* 12BITS ADDRESS */
+    dreg  = 0;         /* DESTINATION REGISTER */
+    sreg  = 0;         /* SOURCE REGISTER */
+}
+
+
 /*** UNIT TESTING FUNCTIONS ***/
 void TestOpcodeHlt(void)
 {
     OpcodeHlt();
     ASSERT_EQ(halt, true, "HLT")
+    ResetVar();
+}
+
+void TestOpcodeLdr(void)
+{
+    /* Test for immediate & for register addressing */
+    dreg = 0; /* R0 */
+    sreg = 1; /* R1 */
+    data = 0xFF;
+    r[sreg] = 0xAA;
+    adrm = ADRM_IMM;
+
+    OpcodeLdr();
+    ASSERT_EQ(r[dreg], 0xFF, "LDR (ADRM_IMM)")
+
+    adrm = ADRM_REG;
+    OpcodeLdr();
+    ASSERT_EQ(r[dreg], 0xAA, "LDR (ADRM_REG)")
+    ResetVar();
 }
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
@@ -71,6 +107,7 @@ int main(void)
 
     /* EXECUTE TEST */
     TestOpcodeHlt();
+    TestOpcodeLdr();
 
     return 0;
 }

@@ -31,7 +31,7 @@
 #define ERROR(s)    printf("ERROR : %s TEST NOT PASSED !!!\n", s); \
                     exit(-1);
 
-#define PASSED(s)   printf("%s TEST PASSED\n", s);
+#define PASSED(s)   printf("--> %s TEST PASSED\n", s);
 
 #define ASSERT_EQ(a, b, s)  if (a == b)                                     \
                             {                                               \
