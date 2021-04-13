@@ -95,38 +95,6 @@ int rom_load(const char *rom_file, uint8_t *ram)
     fclose(rom);
     return 0;
 }
-
-
-uint8_t test_update_flags(int testing)
-{
-    /* reset the flags */
-    uint8_t flags = 0;
-
-    /* test & set in consequence */
-    if (testing == 0)
-    {
-        /* set the zero flag */
-        flags = 0x1;
-    }
-    else if (testing < 0)
-    {
-        /* set the negative flag */
-        flags = 0x4;
-    }
-    else if (testing > 0xFF)
-    {
-        /* set the carry flags */
-        flags = 0x2;
-    }
-
-    return flags;
-}
-
-
-void print_flags(uint8_t flags)
-{
-    printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
-}
 /*** HELPER FUNCTIONS END ***/
 
 

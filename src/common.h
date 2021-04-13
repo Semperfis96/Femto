@@ -37,8 +37,38 @@ typedef enum inst
 } inst_t;
 
 
-uint8_t test_update_flags(int testing);
-void print_flags(uint8_t flags);
+/*** HELPER FUNCTIONS ***/
+uint8_t test_update_flags(int testing)
+{
+    /* reset the flags */
+    uint8_t flags = 0;
+
+    /* test & set in consequence */
+    if (testing == 0)
+    {
+        /* set the zero flag */
+        flags = 0x1;
+    }
+    else if (testing < 0)
+    {
+        /* set the negative flag */
+        flags = 0x4;
+    }
+    else if (testing > 0xFF)
+    {
+        /* set the carry flags */
+        flags = 0x2;
+    }
+
+    return flags;
+}
+
+
+void print_flags(uint8_t flags)
+{
+    printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
+}
+/*** HELPER FUNCTIONS END ***/
 
 
 #ifdef _EMU_
