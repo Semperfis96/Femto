@@ -8,6 +8,7 @@
 #define FEMTO_VERSION "1.0.0"
 #define ASM_VERSION   "1.0.0"
 #define DISM_VERSION  "1.0.0"
+#define TEST_VERSION  "1.0.0"
 
 #define CFLAG ((flags >>  1) & 0x1)
 #define ZFLAG  (flags & 0x1)
