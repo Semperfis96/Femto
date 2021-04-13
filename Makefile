@@ -17,7 +17,7 @@ $(BUILD_DIR)/asm.o: $(SRC_DIR)/asm.c
 $(BUILD_DIR)/dism.o: $(SRC_DIR)/dism.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 
-$(BUILD_DIR)/test.o: $(SRC_DIR)/test.c
+$(BUILD_DIR)/test.o: $(SRC_DIR)/test/test.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 
 test: $(BUILD_DIR)/test.o
@@ -32,7 +32,7 @@ asm: $(BUILD_DIR)/asm.o
 dism: $(BUILD_DIR)/dism.o
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/dism $< $(CLIBS)
 
-all: femto asm dism
+all: femto asm dism test
 
 
 .PHONY: clean

@@ -30,7 +30,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "opcode.h"
+#include "../opcode.h"
+#include "test.h"
 
 #ifdef _ASM_
     #undef _ASM_
@@ -38,51 +39,38 @@
 
 #ifndef _EMU_
 #define _EMU_
-    #include "common.h"
+    #include "../common.h"
 #endif
 
 
 
 /*** CMD FUNCTIONS ***/
-void cmd_help(void)
-{
-    printf("Usage: test\n");
-    printf("Run unit test on the opcode functions.\n");
-}
-
 void cmd_version(void)
 {
     printf("test %s | Copyright (C) 2021 Semperfis\n", (char *)TEST_VERSION);
     printf("This program comes with ABSOLUTELY NO WARRANTY;\n");
     printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>;\n");
-    printf("This is free software, and you are welcome to redistribute it under certain conditions;\n");
+    printf("This is free software, and you are welcome to redistribute it under certain conditions;\n\n");
 }
 /*** CMD FUNCTIONS END ***/
 
 
-/*** PROGRAM ENTRY POINT ***/
-int main(int argc, char *argv[])
+/*** UNIT TESTING FUNCTIONS ***/
+void TestOpcodeHlt(void)
 {
-    /*** COMMAND-LINE ARGUMENTS ***/
-    if (argc == 1)
-    {
-        cmd_help();
-        return 0;
-    }
+    OpcodeHlt();
+    ASSERT_EQ(halt, true, "HLT")
+}
+/*** END OF UNIT TESTING FUNCTIONS ***/
 
-    for (int i = 0; i < argc; i++)
-    {
-        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-?") == 0)
-        {
-            cmd_help();
-            return 0;
-        }
-        else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
-        {
-            cmd_version();
-            return 0;
-        }
-    }
+
+/*** PROGRAM ENTRY POINT ***/
+int main(void)
+{
+    cmd_version();
+
+    /* EXECUTE TEST */
+    TestOpcodeHlt();
 
     return 0;
 }
