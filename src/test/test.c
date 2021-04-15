@@ -97,6 +97,59 @@ void TestOpcodeLdr(void)
     ASSERT_EQ(r[dreg], 0xAA, "LDR (ADRM_REG)")
     ResetVar();
 }
+
+void TestOpcodeLdm(void)
+{
+    /* Test for immediate & for register addressing */
+    dreg = 0; /* R0 */
+    sreg = 1; /* R1 */
+    addr = 0xEC;
+    r[sreg] = addr;
+    ram[addr] = 0xBA;
+    adrm = ADRM_IMM;
+
+    OpcodeLdm();
+    ASSERT_EQ(r[dreg], 0xBA, "LDM (ADRM_IMM)")
+    r[dreg] = 0;
+
+    adrm = ADRM_REG;
+    OpcodeLdm();
+    ASSERT_EQ(r[dreg], 0xBA, "LDM (ADRM_REG)")
+    ResetVar();
+}
+
+void TestOpcodeSti(void)
+{
+    /* Test for immediate & for register addressing */
+    dreg = 0; /* R0 */
+    addr = 0xEC;
+    r[dreg] = addr;
+    data = 0xFB;
+    adrm = ADRM_IMM;
+
+    OpcodeSti();
+    ASSERT_EQ(ram[addr], 0xFB, "STI")
+}
+
+void TestOpcodeStr(void)
+{
+    /* Test for immediate & for register addressing */
+    dreg = 0; /* R0 */
+    sreg = 1; /* R1 */
+    addr = 0xEC;
+    r[dreg] = addr;
+    r[sreg] = 0xAD;
+    adrm = ADRM_IMM;
+
+    OpcodeStr();
+    ASSERT_EQ(ram[addr], 0xAD, "STR (ADRM_IMM)")
+    ram[addr] = 0;
+
+    adrm = ADRM_REG;
+    OpcodeStr();
+    ASSERT_EQ(ram[addr], 0xAD, "STR (ADRM_REG)")
+    ResetVar();
+}
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
 
@@ -105,9 +158,19 @@ int main(void)
 {
     cmd_version();
 
+    ram = malloc(4096 * sizeof(uint8_t));
+    if (ram == NULL)
+    {
+        printf("ERROR: CAN'T ALLOCATE RAM !!!\n");
+        return -1;
+    }
+
     /* EXECUTE TEST */
     TestOpcodeHlt();
     TestOpcodeLdr();
+    TestOpcodeLdm();
+    TestOpcodeSti();
+    TestOpcodeStr();
 
     return 0;
 }
