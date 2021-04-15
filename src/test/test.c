@@ -211,6 +211,36 @@ void TestOpcodeJmp(void)
 
     OpcodeJmp();
     ASSERT_EQ(pc, 0xCAD, "JMP")
+    ResetVar();
+}
+
+void TestOpcodeJz(void)
+{
+    addr = 0xF4A;
+    adrm = ADRM_IMM;
+
+    OpcodeJz();
+    ASSERT_EQ(pc, 0, "JZ NOT TAKEN (ZFLAG = 0)")
+
+    flags = 0x1;
+    OpcodeJz();
+    ASSERT_EQ(pc, 0xF4A, "JZ TAKEN (ZFLAG = 1)")
+    ResetVar();
+}
+
+void TestOpcodeJnz(void)
+{
+    addr = 0xF4A;
+    adrm = ADRM_IMM;
+
+    OpcodeJnz();
+    ASSERT_EQ(pc, 0xF4A, "JNZ TAKEN (ZFLAG = 0)")
+
+    flags = 0x1;
+    pc = 0;
+    OpcodeJnz();
+    ASSERT_EQ(pc, 0, "JNZ NOT TAKEN (ZFLAG = 1)")
+    ResetVar();
 }
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
@@ -237,6 +267,8 @@ int main(void)
     TestOpcodeSub();
     TestOpcodeCmp();
     TestOpcodeJmp();
+    TestOpcodeJz();
+    TestOpcodeJnz();
 
     return 0;
 }
