@@ -29,12 +29,13 @@ typedef enum inst
     CMP = 0x7,
     JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE "x == y" */
     JNZ = 0xF, /* JUMP IF NOT ZERO; SAME AS JNE "x != y" */
-    JN  = 0x9, /* JUMP IF NEGATIVE "x < 0" */
+    JN  = 0x9, /* JUMP IF NEGATIVE */
     JC  = 0xA, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) "x < y" */
     JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) " x >= y" */
     JBE = 0xC, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) "x <= y */
     JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) "x > y" */
-    JMP = 0xE
+    JMP = 0xE,
+    JNN = 0xF  /* JUMP IF NOT NEGATIVE */
 } inst_t;
 
 
@@ -123,6 +124,7 @@ void print_flags(uint8_t flags)
         {"JZ",  JZ , IMM,  NONE, true},
         {"JNZ", JNZ, IMM,  NONE, true},
         {"JN",  JN , IMM,  NONE, true},
+        {"JNN", JNN, IMM,  NONE, true},
         {"JC",  JC , IMM,  NONE, true},
         {"JNC", JNC, IMM,  NONE, true},
         {"JBE", JBE, IMM,  NONE, true},

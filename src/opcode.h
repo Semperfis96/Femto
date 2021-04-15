@@ -194,6 +194,20 @@ void OpcodeJn(void)
         printf("NOT TAKEN JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
+
+void OpcodeJnn(void)
+{
+    /* JN IMM */
+    if (NFLAG == 0)
+    {
+        pc = addr;
+        printf("JNN: 0x%03X (PC = 0x%03X)\n", addr, pc);
+    }
+    else
+    {
+        printf("NOT TAKEN JNN: 0x%03X (PC = 0x%03X)\n", addr, pc);
+    }
+}
                 
 void OpcodeJc(void)
 {
@@ -226,7 +240,7 @@ void OpcodeJnc(void)
 FemtoOpcode OpcodeFunc[0x20] =
 {
     OpcodeHlt, OpcodeLdr, OpcodeLdm, OpcodeSti, OpcodeStr, OpcodeAdd, OpcodeSub, OpcodeCmp,
-    OpcodeJz,  OpcodeJnz, OpcodeJn,  OpcodeJc,  OpcodeJnc, OpcodeError, OpcodeError, OpcodeJmp,
+    OpcodeJz,  OpcodeJnz, OpcodeJn,  OpcodeJc,  OpcodeJnc, OpcodeError, OpcodeJmp, OpcodeJnn,
     OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
     OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
 };
