@@ -120,7 +120,6 @@ void TestOpcodeLdm(void)
 
 void TestOpcodeSti(void)
 {
-    /* Test for immediate & for register addressing */
     dreg = 0; /* R0 */
     addr = 0xEC;
     r[dreg] = addr;
@@ -150,6 +149,69 @@ void TestOpcodeStr(void)
     ASSERT_EQ(ram[addr], 0xAD, "STR (ADRM_REG)")
     ResetVar();
 }
+
+void TestOpcodeAdd(void)
+{
+    dreg = 0;
+    sreg = 1;
+    r[dreg] = 20;
+    r[sreg] = 71;
+    adrm = ADRM_REG;
+
+    OpcodeAdd();
+    ASSERT_EQ(r[dreg], 91, "ADD")
+
+    r[dreg] = 255;
+    r[sreg] = 2;
+    OpcodeAdd();
+    ASSERT_EQ(CFLAG, 1, "ADD (CFLAG)")
+    ResetVar();
+}
+
+void TestOpcodeSub(void)
+{
+    dreg = 0;
+    sreg = 1;
+    r[dreg] = 89;
+    r[sreg] = 17;
+    adrm = ADRM_REG;
+
+    OpcodeSub();
+    ASSERT_EQ(r[dreg], (89-17), "SUB")
+
+    r[dreg] = 58;
+    r[sreg] = 192;
+    OpcodeSub();
+    ASSERT_EQ(NFLAG, 1, "SUB (NFLAG)")
+    ResetVar();
+}
+
+void TestOpcodeCmp(void)
+{
+    dreg = 0;
+    sreg = 1;
+    r[dreg] = 34;
+    r[sreg] = 99;
+    adrm = ADRM_REG;
+
+    OpcodeCmp();
+    ASSERT_EQ(NFLAG, 1, "CMP (NFLAG)")
+
+    r[dreg] = 77;
+    r[sreg] = 77;
+    OpcodeCmp();
+    ASSERT_EQ(ZFLAG, 1, "CMP (ZFLAG)")
+    ResetVar();
+}
+
+void TestOpcodeJmp(void)
+{
+    addr = 0xCAD;
+    adrm = ADRM_IMM;
+
+    OpcodeJmp();
+    ASSERT_EQ(pc, 0xCAD, "JMP")
+}
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
 
@@ -171,6 +233,10 @@ int main(void)
     TestOpcodeLdm();
     TestOpcodeSti();
     TestOpcodeStr();
+    TestOpcodeAdd();
+    TestOpcodeSub();
+    TestOpcodeCmp();
+    TestOpcodeJmp();
 
     return 0;
 }
