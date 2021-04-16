@@ -54,6 +54,8 @@ void cmd_help(void)
     printf(" -v\n");
     printf("--file [FILE] : specify the binary file to be load in RAM\n");
     printf(" -f\n");
+    printf("--verbose     : specify to femto to output more information\n");
+    printf(" -vb\n");
 }
 
 void cmd_version(void)
@@ -127,6 +129,10 @@ int main(int argc, char *argv[])
             i++;
             rom = argv[i];
         }
+        else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-vb") == 0)
+        {
+            verbose = true;
+        }
     }
 
 
@@ -138,6 +144,7 @@ int main(int argc, char *argv[])
         printf("ERROR (main): CAN'T ALLOCATE VIRTUAL RAM !!!\n");
         exit(-1);
     }
+    if (CHKVB) printf("FEMTO: VIRTUAL RAM IS ALLOCATE\n");
 
     /* ROM LOADING (BINARY FILE) INTO RAM */
     if (rom_load((const char *)rom, ram) != 0)
@@ -145,13 +152,15 @@ int main(int argc, char *argv[])
         free(ram);
         return -1;
     }
+    if (CHKVB) printf("FEMTO: ROM IS LOAD IN VIRTUAL RAM\n");
 
 
     /*** EMULATION LOOP ***/
+    printf("FEMTO: STARTING EMULATION\n");
     while (!halt)
     {
         /* FETCH INSTRUCTION FROM RAM */
-        printf("[0x%03X] ", pc);
+        if (CHKVB) printf("[0x%03X] ", pc);
         f[0] = ram[(pc++ % 0xFFF)];
         f[1] = ram[(pc++ % 0xFFF)];
         f[2] = ram[(pc++ % 0xFFF)];

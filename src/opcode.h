@@ -28,6 +28,8 @@
 #ifndef OPCODE_H_
 #define OPCODE_H_
 
+#include <stdio.h>
+
 #ifdef _ASM_
     #undef _ASM_
 #endif
@@ -50,7 +52,8 @@ void OpcodeError(void)
 
 void OpcodeHlt(void)
 {
-    printf("HLT INSTRUCTION AT 0x%03X\n", (pc - 3) % 0xFFF);
+    if (CHKVB) printf("HLT INSTRUCTION AT 0x%03X\n", (pc - 3) % 0xFFF);
+    printf("FEMTO: HALTING EMULATION\n");
     halt = true;
     return;
 }
@@ -61,12 +64,12 @@ void OpcodeLdr(void)
     if (adrm == ADRM_IMM)
     {
         r[dreg] = data;
-        printf("LDR: R%d = 0x%02X\n", dreg, r[dreg]);
+        if (CHKVB) printf("LDR: R%d = 0x%02X\n", dreg, r[dreg]);
     }
     else if (adrm == ADRM_REG)
     {
         r[dreg] = r[sreg];
-        printf("LDR: R%d = R%d (0x%02X)\n", dreg, sreg, r[sreg]);
+        if (CHKVB) printf("LDR: R%d = R%d (0x%02X)\n", dreg, sreg, r[sreg]);
     }
 }
                 
@@ -76,12 +79,12 @@ void OpcodeLdm(void)
     if (adrm == ADRM_IMM)
     {
         r[dreg] = ram[addr];
-        printf("LDM: R%d = 0x%02X (RAM[0x%03X])\n", dreg, r[dreg], addr);
+        if (CHKVB) printf("LDM: R%d = 0x%02X (RAM[0x%03X])\n", dreg, r[dreg], addr);
     }
     else if (adrm == ADRM_REG)
     {
         r[dreg] = ram[r[sreg]];
-        printf("LDM: R%d = 0x%02X (RAM[R%d] (0x%02X))\n", dreg, r[dreg], sreg, r[sreg]);
+        if (CHKVB) printf("LDM: R%d = 0x%02X (RAM[R%d] (0x%02X))\n", dreg, r[dreg], sreg, r[sreg]);
     }
 }
                 
@@ -91,7 +94,7 @@ void OpcodeSti(void)
     if (adrm == ADRM_IMM)
     {
         ram[r[dreg]] = data;
-        printf("STI: RAM[R%d (0x%02X)] = 0x%02X\n", dreg, r[dreg], ram[r[dreg]]);
+        if (CHKVB) printf("STI: RAM[R%d (0x%02X)] = 0x%02X\n", dreg, r[dreg], ram[r[dreg]]);
     }
     else
     {
@@ -106,12 +109,12 @@ void OpcodeStr(void)
     if (adrm == ADRM_IMM)
     {
         ram[addr] = r[sreg];
-        printf("STR: RAM[0x%03X] = 0x%02X (R%d (0x%02X))\n", addr, ram[addr], sreg, r[sreg]);
+        if (CHKVB) printf("STR: RAM[0x%03X] = 0x%02X (R%d (0x%02X))\n", addr, ram[addr], sreg, r[sreg]);
     }
     else if (adrm == ADRM_REG)
     {
         ram[r[dreg]] = r[sreg];
-        printf("STR: RAM[R%d (0x%02X)] = 0x%02X (R%d (0x%02X))\n", dreg, r[dreg], ram[r[dreg]], sreg, r[sreg]);
+        if (CHKVB) printf("STR: RAM[R%d (0x%02X)] = 0x%02X (R%d (0x%02X))\n", dreg, r[dreg], ram[r[dreg]], sreg, r[sreg]);
     }
 }
                 
@@ -122,7 +125,7 @@ void OpcodeAdd(void)
     flags = test_update_flags(temp);
     temp = r[dreg];
     r[dreg] += r[sreg];
-    printf("ADD: R%d (0x%02X) = R%d (0x%02X) + R%d (0x%02X)\n", dreg, r[dreg], dreg, r[dreg] - r[sreg], sreg, r[sreg]);
+    if (CHKVB) printf("ADD: R%d (0x%02X) = R%d (0x%02X) + R%d (0x%02X)\n", dreg, r[dreg], dreg, r[dreg] - r[sreg], sreg, r[sreg]);
     print_flags(flags);
 }
                 
@@ -133,7 +136,7 @@ void OpcodeSub(void)
     flags = test_update_flags(temp);
     temp = r[dreg];
     r[dreg] -= r[sreg];
-    printf("SUB: R%d (0x%02X) = R%d (0x%02X) - R%d (0x%02X)\n", dreg, r[dreg], dreg, temp, sreg, r[sreg]);
+    if (CHKVB) printf("SUB: R%d (0x%02X) = R%d (0x%02X) - R%d (0x%02X)\n", dreg, r[dreg], dreg, temp, sreg, r[sreg]);
     print_flags(flags);
 }
                 
@@ -142,7 +145,7 @@ void OpcodeCmp(void)
     /* CMP REG, REG */
     temp = r[dreg] - r[sreg];
     flags = test_update_flags(temp);
-    printf("CMP: R%d (0x%02X), R%d (0x%02X)\n", dreg, r[dreg], sreg, r[sreg]);
+    if (CHKVB) printf("CMP: R%d (0x%02X), R%d (0x%02X)\n", dreg, r[dreg], sreg, r[sreg]);
     print_flags(flags);
 }
                 
@@ -150,7 +153,7 @@ void OpcodeJmp(void)
 {
     /* JMP IMM */
     pc = addr;
-    printf("JMP TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+    if (CHKVB) printf("JMP TO 0x%03X (PC = 0x%03X)\n", addr, pc);
 }
                 
 void OpcodeJz(void)
@@ -159,11 +162,11 @@ void OpcodeJz(void)
     if (ZFLAG == 1)
     {
         pc = addr;
-        printf("JZ/JE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JZ/JE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JZ/JE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JZ/JE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
@@ -173,11 +176,11 @@ void OpcodeJnz(void)
     if (ZFLAG == 0)
     {
         pc = addr;
-        printf("JNZ/JNE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JNZ/JNE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JNZ/JNE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JNZ/JNE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
                 
@@ -187,11 +190,11 @@ void OpcodeJn(void)
     if (NFLAG == 1)
     {
         pc = addr;
-        printf("JN TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JN TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JN NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JN NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
@@ -201,11 +204,11 @@ void OpcodeJnn(void)
     if (NFLAG == 0)
     {
         pc = addr;
-        printf("JNN TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JNN TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JNN NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JNN NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
                 
@@ -215,11 +218,11 @@ void OpcodeJc(void)
     if (CFLAG == 1)
     {
         pc = addr;
-        printf("JC TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JC TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JC NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JC NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
                 
@@ -229,11 +232,11 @@ void OpcodeJnc(void)
     if (CFLAG == 0)
     {
         pc = addr;
-        printf("JNC TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JNC TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JNCNOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JNCNOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
@@ -243,11 +246,11 @@ void OpcodeJbe(void)
     if ((CFLAG == 1) || (ZFLAG == 1))
     {
         pc = addr;
-        printf("JBE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JBE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JBE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JBE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
@@ -257,11 +260,11 @@ void OpcodeJa(void)
     if (((!CFLAG) == 1) && ((!ZFLAG) == 1))
     {
         pc = addr;
-        printf("JA TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JA TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("JA NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+        if (CHKVB) printf("JA NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
