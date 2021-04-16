@@ -300,6 +300,58 @@ void TestOpcodeJnn(void)
     ASSERT_EQ(pc, 0, "JNN NOT TAKEN (NFLAG = 1)")
     ResetVar();
 }
+
+void TestOpcodeJbe(void)
+{
+    addr = 0xF4A;
+    adrm = ADRM_IMM;
+
+    OpcodeJbe();
+    ASSERT_EQ(pc, 0, "JBE NOT TAKEN (CFLAG = 0 AND ZFLAG = 0)")
+
+    flags = 0x2;
+    pc = 0;
+    OpcodeJbe();
+    ASSERT_EQ(pc, 0xF4A, "JBE TAKEN (CFLAG = 1 AND ZFLAG = 0)")
+
+    flags = 0x1;
+    pc = 0;
+    OpcodeJbe();
+    ASSERT_EQ(pc, 0xF4A, "JBE TAKEN (CFLAG = 0 AND ZFLAG = 1)")
+
+
+    flags = 0x3;
+    pc = 0;
+    OpcodeJbe();
+    ASSERT_EQ(pc, 0xF4A, "JBE TAKEN (CFLAG = 1 AND ZFLAG = 1)")
+    ResetVar();
+}
+
+void TestOpcodeJa(void)
+{
+    addr = 0xF4A;
+    adrm = ADRM_IMM;
+
+    OpcodeJa();
+    ASSERT_EQ(pc, 0xF4A, "JA TAKEN (CFLAG = 0 (1) AND ZFLAG = 0 (1))")
+
+    flags = 0x2;
+    pc = 0;
+    OpcodeJa();
+    ASSERT_EQ(pc, 0, "JA NOT TAKEN (CFLAG = 1 (0) AND ZFLAG = 0 (1))")
+
+    flags = 0x1;
+    pc = 0;
+    OpcodeJa();
+    ASSERT_EQ(pc, 0, "JA NOT TAKEN (CFLAG = 0 (1) AND ZFLAG = 1 (0))")
+
+
+    flags = 0x3;
+    pc = 0;
+    OpcodeJa();
+    ASSERT_EQ(pc, 0, "JA NOT TAKEN (CFLAG = 1 (0) AND ZFLAG = 1 (0))")
+    ResetVar();
+}
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
 
@@ -331,6 +383,8 @@ int main(void)
     TestOpcodeJnc();
     TestOpcodeJn();
     TestOpcodeJnn();
+    TestOpcodeJbe();
+    TestOpcodeJa();
 
     return 0;
 }

@@ -10,6 +10,7 @@
 #define DISM_VERSION  "1.0.0"
 #define TEST_VERSION  "1.0.0"
 
+/* FLAGS: XXXX XNCZ */
 #define CFLAG ((flags >>  1) & 0x1)
 #define ZFLAG  (flags & 0x1)
 #define NFLAG ((flags >>  2) & 0x1)
@@ -19,23 +20,23 @@
 
 typedef enum inst
 {
-    HLT = 0x0,
-    LDR = 0x1,
-    LDM = 0x2,
-    STI = 0x3,
-    STR = 0x4,
-    ADD = 0x5,
-    SUB = 0x6,
-    CMP = 0x7,
-    JZ  = 0x8, /* JUMP IF ZERO; SAME AS JE "x == y" */
-    JNZ = 0xF, /* JUMP IF NOT ZERO; SAME AS JNE "x != y" */
-    JN  = 0x9, /* JUMP IF NEGATIVE */
-    JC  = 0xA, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) "x < y" */
-    JNC = 0xB, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) " x >= y" */
-    JBE = 0xC, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) "x <= y */
-    JA  = 0xD, /* JUMP IF ABOVE (!CARRY OR !ZERO) "x > y" */
-    JMP = 0xE,
-    JNN = 0xF  /* JUMP IF NOT NEGATIVE */
+    HLT = 0x00,
+    LDR = 0x01,
+    LDM = 0x02,
+    STI = 0x03,
+    STR = 0x04,
+    ADD = 0x05,
+    SUB = 0x06,
+    CMP = 0x07,
+    JZ  = 0x08, /* JUMP IF ZERO; SAME AS JE "x == y" */
+    JN  = 0x09, /* JUMP IF NEGATIVE */
+    JC  = 0x0A, /* JUMP IF CARRY; SAME AS JB (JUMP IF BELOW) "x < y" */
+    JNC = 0x0B, /* JUMP IF NOT CARRY; SAME AS JAE (JUMP IF ABOVE OR EQUAL) " x >= y" */
+    JBE = 0x0C, /* JUMP IF BELOW OR EQUAL (CARRY OR ZERO) "x <= y */
+    JA  = 0x0D, /* JUMP IF ABOVE (!CARRY AND !ZERO) "x > y" */
+    JMP = 0x0E,
+    JNZ = 0x0F, /* JUMP IF NOT ZERO; SAME AS JNE "x != y" */
+    JNN = 0x10  /* JUMP IF NOT NEGATIVE */
 } inst_t;
 
 

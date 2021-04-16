@@ -28,19 +28,19 @@
 #ifndef TEST_H_
 #define TEST_H_
 
-#define ERROR(s)    printf("ERROR : %s TEST NOT PASSED !!!\n", s); \
+#define ERROR(s)    printf("!!! ERROR : %s TEST NOT PASSED !!!\n", s); \
                     exit(-1);
 
-#define PASSED(s)   printf("--> %s TEST PASSED\n", s);
+#define PASSED(s)   printf("==> %s TEST PASSED\n", s);
 
-#define ASSERT_EQ(a, b, s)  if (a == b)                                     \
-                            {                                               \
-                                PASSED(s)                                   \
-                            }                                               \
-                            else                                            \
-                            {                                               \
-                                printf("ASSERT_EQ FAILED FOR %s !!!\n", s); \
-                                ERROR(s)                                    \
+#define ASSERT_EQ(a, b, s)  if (a == b)                                         \
+                            {                                                   \
+                                PASSED(s)                                       \
+                            }                                                   \
+                            else                                                \
+                            {                                                   \
+                                printf("!!! ASSERT_EQ FAILED FOR %s !!!\n", s); \
+                                ERROR(s)                                        \
                             }
 
 #endif

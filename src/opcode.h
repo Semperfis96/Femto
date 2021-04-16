@@ -150,7 +150,7 @@ void OpcodeJmp(void)
 {
     /* JMP IMM */
     pc = addr;
-    printf("JMP: 0x%03X (PC = 0x%03X)\n", addr, pc);
+    printf("JMP TO 0x%03X (PC = 0x%03X)\n", addr, pc);
 }
                 
 void OpcodeJz(void)
@@ -159,11 +159,11 @@ void OpcodeJz(void)
     if (ZFLAG == 1)
     {
         pc = addr;
-        printf("JZ/JE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JZ/JE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("NOT TAKEN JZ/JE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JZ/JE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
@@ -173,11 +173,11 @@ void OpcodeJnz(void)
     if (ZFLAG == 0)
     {
         pc = addr;
-        printf("JNZ/JNE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JNZ/JNE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("NOT TAKEN JNZ/JNE: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JNZ/JNE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
                 
@@ -187,11 +187,11 @@ void OpcodeJn(void)
     if (NFLAG == 1)
     {
         pc = addr;
-        printf("JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JN TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("NOT TAKEN JN: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JN NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
@@ -201,11 +201,11 @@ void OpcodeJnn(void)
     if (NFLAG == 0)
     {
         pc = addr;
-        printf("JNN: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JNN TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("NOT TAKEN JNN: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JNN NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
                 
@@ -215,11 +215,11 @@ void OpcodeJc(void)
     if (CFLAG == 1)
     {
         pc = addr;
-        printf("JC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JC TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("NOT TAKEN JC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JC NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
                 
@@ -229,19 +229,47 @@ void OpcodeJnc(void)
     if (CFLAG == 0)
     {
         pc = addr;
-        printf("JNC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JNC TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
     else
     {
-        printf("NOT TAKEN JNC: 0x%03X (PC = 0x%03X)\n", addr, pc);
+        printf("JNCNOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+    }
+}
+
+void OpcodeJbe(void)
+{
+    /* JBE IMM */
+    if ((CFLAG == 1) || (ZFLAG == 1))
+    {
+        pc = addr;
+        printf("JBE TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+    }
+    else
+    {
+        printf("JBE NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+    }
+}
+
+void OpcodeJa(void)
+{
+    /* JA IMM */
+    if (((!CFLAG) == 1) && ((!ZFLAG) == 1))
+    {
+        pc = addr;
+        printf("JA TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
+    }
+    else
+    {
+        printf("JA NOT TAKEN TO 0x%03X (PC = 0x%03X)\n", addr, pc);
     }
 }
 
 FemtoOpcode OpcodeFunc[0x20] =
 {
-    OpcodeHlt, OpcodeLdr, OpcodeLdm, OpcodeSti, OpcodeStr, OpcodeAdd, OpcodeSub, OpcodeCmp,
-    OpcodeJz,  OpcodeJnz, OpcodeJn,  OpcodeJc,  OpcodeJnc, OpcodeError, OpcodeJmp, OpcodeJnn,
-    OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
+    OpcodeHlt,   OpcodeLdr,   OpcodeLdm,   OpcodeSti,   OpcodeStr,   OpcodeAdd,   OpcodeSub,   OpcodeCmp,
+    OpcodeJz,    OpcodeJn,    OpcodeJc,    OpcodeJnc,   OpcodeJbe,   OpcodeJa,    OpcodeJmp,   OpcodeJnz,
+    OpcodeJnn,   OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
     OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
 };
 #endif
