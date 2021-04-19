@@ -268,11 +268,43 @@ void OpcodeJa(void)
     }
 }
 
+
+/* STACK HELPING FUNCTIONS */
+void StackPushByte(uint8_t byte)
+{
+    ram[STACK_BASE + (sp++)] = byte;
+}
+
+uint8_t StackPopByte(void)
+{
+    return ram[STACK_BASE + (--sp)];
+}
+
+void OpcodePush(void)
+{
+    if (adrm == ADRM_REG)
+    {
+        StackPushByte(r[dreg]);
+        if (CHKVB) printf("PUSH R%d (0x%02X); SP = 0x%02X\n", dreg, r[dreg], sp);
+    }
+    else
+    {
+        StackPushByte(data);
+        if (CHKVB) printf("PUSH 0x%02X; SP = 0x%02X\n", data, sp);
+    }
+}
+
+void OpcodePop(void)
+{
+    r[dreg] = StackPopByte();
+    if (CHKVB) printf("POP IN R%d (0x%02X); SP = 0x%02X\n", dreg, r[dreg], sp);
+}
+
 FemtoOpcode OpcodeFunc[0x20] =
 {
     OpcodeHlt,   OpcodeLdr,   OpcodeLdm,   OpcodeSti,   OpcodeStr,   OpcodeAdd,   OpcodeSub,   OpcodeCmp,
     OpcodeJz,    OpcodeJn,    OpcodeJc,    OpcodeJnc,   OpcodeJbe,   OpcodeJa,    OpcodeJmp,   OpcodeJnz,
-    OpcodeJnn,   OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
+    OpcodeJnn,   OpcodePush,  OpcodePop, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
     OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
 };
 #endif

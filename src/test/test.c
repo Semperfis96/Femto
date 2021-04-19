@@ -352,6 +352,37 @@ void TestOpcodeJa(void)
     ASSERT_EQ(pc, 0, "JA NOT TAKEN (CFLAG = 1 (0) AND ZFLAG = 1 (0))")
     ResetVar();
 }
+
+void TestOpcodePush(void)
+{
+    data    = 0xEA;
+    dreg    = 0;
+    r[dreg] = 0x74;
+    adrm    = ADRM_IMM;
+
+    OpcodePush();
+    ASSERT_EQ(ram[STACK_BASE + (--sp)], 0xEA, "PUSH (IMM)")
+
+    adrm = ADRM_REG;
+    sp = 0;
+    OpcodePush();
+    ASSERT_EQ(ram[STACK_BASE + (--sp)], 0x74, "PUSH (REG)")
+    ResetVar();
+}
+
+void TestOpcodePop(void)
+{
+    data    = 0x9E;
+    dreg    = 0;
+    adrm    = ADRM_IMM;
+
+    OpcodePush();
+    
+    adrm = ADRM_REG;
+    OpcodePop();
+    ASSERT_EQ(r[dreg], 0x9E, "POP")
+    ResetVar();
+}
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
 
@@ -385,6 +416,8 @@ int main(void)
     TestOpcodeJnn();
     TestOpcodeJbe();
     TestOpcodeJa();
+    TestOpcodePush();
+    TestOpcodePop();
 
     return 0;
 }
