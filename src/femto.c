@@ -21,8 +21,8 @@
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
  * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
- * - IIII IIIM   RRRR xxxx   DDDD DDDD
- * - IIII IIIM   RRRR AAAA   AAAA AAAA
+ * - MIII IIII   RRRR xxxx   DDDD DDDD
+ * - MIII IIII   RRRR AAAA   AAAA AAAA
  */
 
 #include <stdio.h>
@@ -68,7 +68,7 @@ void cmd_version(void)
 /*** CMD FUNCTIONS END ***/
 
 
-/*** HELPER FUNCTIONS ***/
+/*** HELPING FUNCTIONS ***/
 int rom_load(const char *rom_file, uint8_t *ram)
 {
     FILE *rom  = NULL;
@@ -97,7 +97,7 @@ int rom_load(const char *rom_file, uint8_t *ram)
     fclose(rom);
     return 0;
 }
-/*** HELPER FUNCTIONS END ***/
+/*** END OF HELPING FUNCTIONS ***/
 
 
 /*** PROGRAM ENTRY POINT ***/
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 
         /* DECODE INSTRUCTION */
         inst =   f[0] & 0x7F;
-        adrm =   f[0] & 0x80;
+        adrm =  (f[0] & 0x80) >> 7;
         dreg =  (f[1] >> 6) & 0x03;
         sreg =  (f[1] >> 4) & 0x03;
         data =   f[2];

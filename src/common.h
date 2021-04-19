@@ -21,8 +21,8 @@
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
  * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
- * - IIII IIIM   RRRR xxxx   DDDD DDDD
- * - IIII IIIM   RRRR AAAA   AAAA AAAA
+ * - MIII IIII   RRRR xxxx   DDDD DDDD
+ * - MIII IIII   RRRR AAAA   AAAA AAAA
  */
 
 #ifndef COMMON_H_
@@ -81,7 +81,6 @@ typedef enum inst
 
 
 #ifdef _EMU_
-    /* HACK: Make variable globals !!! */
     /* TODO: Make a nice structure */
     uint16_t  pc    =  0x0;      /* PROGRAM COUNTER (12BITS) */
     uint8_t   r[4]  = {0x0};     /* GP REGISTERS (R0, R1, R2 AND R3) */
@@ -149,39 +148,4 @@ typedef enum inst
         {"R3", 0x3, NONE, NONE, false}
     };
 #endif
-
-
-/*** HELPING FUNCTIONS ***/
-uint8_t test_update_flags(int testing)
-{
-    /* reset the flags */
-    uint8_t flags = 0;
-
-    /* test & set in consequence */
-    if (testing == 0)
-    {
-        /* set the zero flag */
-        flags = 0x1;
-    }
-    else if (testing < 0)
-    {
-        /* set the negative flag */
-        flags = 0x4;
-    }
-    else if (testing > 0xFF)
-    {
-        /* set the carry flags */
-        flags = 0x2;
-    }
-
-    return flags;
-}
-
-
-void print_flags(uint8_t flags)
-{
-    if (CHKVB) printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
-}
-/*** END OF HELPING FUNCTIONS ***/
-
 #endif

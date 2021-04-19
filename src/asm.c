@@ -21,8 +21,8 @@
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
  * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
- * - IIII IIIM   RRRR xxxx   DDDD DDDD
- * - IIII IIIM   RRRR AAAA   AAAA AAAA
+ * - MIII IIII   RRRR xxxx   DDDD DDDD
+ * - MIII IIII   RRRR AAAA   AAAA AAAA
  */
 
 #include <stdio.h>
@@ -353,8 +353,6 @@ bool inst_assembler(char *token, uint8_t *inst)
     if (i < 0xFF)
     {
         *inst = inst_trans_table[i].value;
-        // DEBUG
-        printf("INSTRUCTION: %s\n", inst_trans_table[i].str);
         return false;
     }
     else
@@ -494,17 +492,11 @@ int main(int argc, char *argv[])
                 return -1;
             }
 
-            //DEBUG
-            //printf("INST = 0x%02X; ADRM = %01X; DREG = 0x%01X; SREG = 0x%01X; DATA = 0x%02X; ADDR = 0x%03X\n", inst, adrm, dreg, sreg, data, addr);
-
 
             /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
             f[0] = inst | (adrm << 7);
             f[1] = (dreg << 6) | (sreg << 4) | ((addr & 0xF00) >> 8);
             f[2] = data | (addr & 0x0FF);
-
-            //DEBUG
-            //printf("F[0] = 0x%02X; F[1] = 0x%02X; F[2] = 0x%02X\n", f[0], f[1], f[2]);
 
             if (fwrite((const void *)f, 1, 3, dst_file) < 3)
             {

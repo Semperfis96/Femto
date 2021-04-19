@@ -21,8 +21,8 @@
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
  * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
- * - IIII IIIM   RRRR xxxx   DDDD DDDD
- * - IIII IIIM   RRRR AAAA   AAAA AAAA
+ * - MIII IIII   RRRR xxxx   DDDD DDDD
+ * - MIII IIII   RRRR AAAA   AAAA AAAA
  */
 
 #ifndef OPCODE_H_
@@ -40,6 +40,52 @@
 #endif
 
 typedef void (*FemtoOpcode)(void);
+
+
+/*** HELPING FUNCTIONS ***/
+uint8_t test_update_flags(int testing)
+{
+    /* reset the flags */
+    uint8_t flags = 0;
+
+    /* test & set in consequence */
+    if (testing == 0)
+    {
+        /* set the zero flag */
+        flags = 0x1;
+    }
+    else if (testing < 0)
+    {
+        /* set the negative flag */
+        flags = 0x4;
+    }
+    else if (testing > 0xFF)
+    {
+        /* set the carry flags */
+        flags = 0x2;
+    }
+
+    return flags;
+}
+
+
+void print_flags(uint8_t flags)
+{
+    if (CHKVB) printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
+}
+
+/* STACK HELPING FUNCTIONS */
+void StackPushByte(uint8_t byte)
+{
+    ram[STACK_BASE + (sp++)] = byte;
+}
+
+uint8_t StackPopByte(void)
+{
+    return ram[STACK_BASE + (--sp)];
+}
+/*** END OF HELPING FUNCTIONS ***/
+
 
 
 /*** OPCODE FUNCTIONS ***/
@@ -268,20 +314,9 @@ void OpcodeJa(void)
     }
 }
 
-
-/* STACK HELPING FUNCTIONS */
-void StackPushByte(uint8_t byte)
-{
-    ram[STACK_BASE + (sp++)] = byte;
-}
-
-uint8_t StackPopByte(void)
-{
-    return ram[STACK_BASE + (--sp)];
-}
-
 void OpcodePush(void)
 {
+    /* PUSH REG | IMM */
     if (adrm == ADRM_REG)
     {
         StackPushByte(r[dreg]);
@@ -296,15 +331,18 @@ void OpcodePush(void)
 
 void OpcodePop(void)
 {
+    /* POP REG */
     r[dreg] = StackPopByte();
     if (CHKVB) printf("POP IN R%d (0x%02X); SP = 0x%02X\n", dreg, r[dreg], sp);
 }
+/*** END OF OPCODE FUNCTIONS ***/
+
 
 FemtoOpcode OpcodeFunc[0x20] =
 {
     OpcodeHlt,   OpcodeLdr,   OpcodeLdm,   OpcodeSti,   OpcodeStr,   OpcodeAdd,   OpcodeSub,   OpcodeCmp,
     OpcodeJz,    OpcodeJn,    OpcodeJc,    OpcodeJnc,   OpcodeJbe,   OpcodeJa,    OpcodeJmp,   OpcodeJnz,
-    OpcodeJnn,   OpcodePush,  OpcodePop, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
+    OpcodeJnn,   OpcodePush,  OpcodePop,   OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
     OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
 };
 #endif
