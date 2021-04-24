@@ -28,15 +28,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef _EMU_
-    #undef _EMU_
-#endif
-
-#ifndef _ASM_
-    #define _ASM_
-    #include "../inc/common.h"
-#endif
+#include "../common.h"
+#include "asm.h"
 
 #define DISM_BUFFER 32
 

@@ -31,15 +31,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <ctype.h>
-
-#ifdef _EMU_
-    #undef _EMU_
-#endif
-
-#ifndef _ASM_
-    #define _ASM_
-    #include "../inc/common.h"
-#endif
+#include "../common.h"
+#include "asm.h"
 
 
 #define get_token strtok(NULL, " ,\n")

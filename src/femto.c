@@ -29,43 +29,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
-#include "./inc/opcode.h"
-
-#ifdef _ASM_
-    #undef _ASM_
-#endif
-
-#ifndef _EMU_
-#define _EMU_
-    #include "./inc/common.h"
-#endif
-
-
-
-/*** CMD FUNCTIONS ***/
-void cmd_help(void)
-{
-    printf("Usage: femto [OPTION]\n");
-    printf("Run the computer emulator FEMTO with FILE as input binary, configure with OPTION.\n\n");
-    printf("--help        : display this help & exit\n");
-    printf(" -h | -?\n");
-    printf("--version     : output version information and exit\n");
-    printf(" -v\n");
-    printf("--file [FILE] : specify the binary file to be load in RAM\n");
-    printf(" -f\n");
-    printf("--verbose     : specify to femto to output more information\n");
-    printf(" -vb\n");
-}
-
-void cmd_version(void)
-{
-    printf("femto %s | Copyright (C) 2021 Semperfis\n", (char *)FEMTO_VERSION);
-    printf("This program comes with ABSOLUTELY NO WARRANTY;\n");
-    printf("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>;\n");
-    printf("This is free software, and you are welcome to redistribute it under certain conditions;\n");
-}
-/*** CMD FUNCTIONS END ***/
+#include "cpu/cpu.h"
+#include "common.h"
 
 
 /*** HELPING FUNCTIONS ***/
@@ -97,88 +62,86 @@ int rom_load(const char *rom_file, uint8_t *ram)
     fclose(rom);
     return 0;
 }
+
+
+void ResetEmuState(FemtoEmu_t *emu)
+{
+    emu->pc    = 0x0;       /* PROGRAM COUNTER (12BITS) */
+    emu->r[0]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->r[1]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->r[2]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->r[3]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->f[0]  = 0x0;
+    emu->f[1]  = 0x0;
+    emu->f[2]  = 0x0;
+    emu->sp    = 0x0;
+    emu->inst  = 0x0;
+    emu->flags = 0x0;       /* FLAGS REGISTER */
+    emu->adrm  = ADRM_IMM;  /* ADDRESSING MODE */
+    emu->halt  = false;     /* CPU IS HALT OR NOT */
+    emu->data  = 0;         /* 8BITS DATA */
+    emu->addr  = 0;         /* 12BITS ADDRESS */
+    emu->dreg  = 0;         /* DESTINATION REGISTER */
+    emu->sreg  = 0;         /* SOURCE REGISTER */
+    emu->temp  = 0;
+}
 /*** END OF HELPING FUNCTIONS ***/
 
 
-/*** PROGRAM ENTRY POINT ***/
-int main(int argc, char *argv[])
+FemtoEmu_t * EmuInit(const char *rom_file, bool verbose)
 {
-    char     *rom   = NULL;
+    FemtoEmu_t *temp = NULL;
 
-    /*** COMMAND-LINE ARGUMENTS ***/
-    if (argc == 1)
+
+    /* EMULATION STATE ALLOCATION */
+    temp = malloc(sizeof(FemtoEmu_t));
+    if (temp == NULL)
     {
-        cmd_help();
-        return 0;
-    }
-
-    for (int i = 0; i < argc; i++)
-    {
-        if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-?") == 0)
-        {
-            cmd_help();
-            return 0;
-        }
-        else if (strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0)
-        {
-            cmd_version();
-            return 0;
-        }
-        else if (strcmp(argv[i], "--file") == 0 || strcmp(argv[i], "-f") == 0)
-        {
-            i++;
-            rom = argv[i];
-        }
-        else if (strcmp(argv[i], "--verbose") == 0 || strcmp(argv[i], "-vb") == 0)
-        {
-            verbose = true;
-        }
-    }
-
-
-    /*** EMULATION SETUP ***/
-    /*   RAM ALLOCATION    */
-    ram = malloc(4 * 1024 * sizeof(uint8_t));
-    if (ram == NULL)
-    {
-        printf("ERROR (main): CAN'T ALLOCATE VIRTUAL RAM !!!\n");
+        printf("ERROR (EmuInit): CAN'T ALLOCATE EMULATION STATE!!!\n");
         exit(-1);
     }
-    if (CHKVB) printf("FEMTO: VIRTUAL RAM IS ALLOCATE\n");
+    if (verbose == true) printf("FEMTO: EMULATION STATE IS ALLOCATE\n");
+    ResetEmuState(temp);
+
+
+    /* RAM ALLOCATION */
+    temp->ram = malloc(4 * 1024 * sizeof(uint8_t));
+    if (temp->ram == NULL)
+    {
+        printf("ERROR (EmuInit): CAN'T ALLOCATE VIRTUAL RAM !!!\n");
+        free(temp);
+        exit(-1);
+    }
+    if (verbose == true) printf("FEMTO: VIRTUAL RAM IS ALLOCATE\n");
+
 
     /* ROM LOADING (BINARY FILE) INTO RAM */
-    if (rom_load((const char *)rom, ram) != 0)
+    if (rom_load(rom_file, temp->ram) != 0)
     {
-        free(ram);
-        return -1;
+        free(temp->ram);
+        free(temp);
+        exit(-1);
     }
-    if (CHKVB) printf("FEMTO: ROM IS LOAD IN VIRTUAL RAM\n");
+    if (verbose == true) printf("FEMTO: ROM IS LOAD IN VIRTUAL RAM\n");
+
+    return temp;
+}
 
 
+void EmuLoop(FemtoEmu_t *emu, bool verbose)
+{
     /*** EMULATION LOOP ***/
     printf("FEMTO: STARTING EMULATION\n");
-    while (!halt)
+    while (!emu->halt)
     {
-        /* FETCH INSTRUCTION FROM RAM */
-        if (CHKVB) printf("[0x%03X] ", pc);
-        f[0] = ram[(pc++ % 0xFFF)];
-        f[1] = ram[(pc++ % 0xFFF)];
-        f[2] = ram[(pc++ % 0xFFF)];
-
-        /* DECODE INSTRUCTION */
-        inst =   f[0] & 0x7F;
-        adrm =  (f[0] & 0x80) >> 7;
-        dreg =  (f[1] >> 6) & 0x03;
-        sreg =  (f[1] >> 4) & 0x03;
-        data =   f[2];
-        addr = ((f[1] & 0x0F) << 8) | f[2];
-
-        /* EXECUTE INSTRUCTION, CALL THE APPROPRIATE FUNCTION THAT EMULATE THE OPCODE */
-        (*OpcodeFunc[inst])();
-        temp = 0;
+        CpuExecInst(emu, verbose);
     }
+}
 
-    /*** EMULATION END ***/
-    free(ram);
-    return 0;
+
+void EmuQuit(FemtoEmu_t *emu)
+{
+    printf("FEMTO: HALTING EMULATION\n");
+    free(emu->ram);
+    free(emu);
 }

@@ -43,4 +43,30 @@
                                 ERROR(s)                                        \
                             }
 
+void StackPushByte(FemtoEmu_t *emu, uint8_t byte);
+uint8_t StackPopByte(FemtoEmu_t *emu);
+
+void OpcodeHlt(FemtoEmu_t *emu, bool verbose);
+void OpcodeLdr(FemtoEmu_t *emu, bool verbose);
+void OpcodeLdm(FemtoEmu_t *emu, bool verbose);
+void OpcodeSti(FemtoEmu_t *emu, bool verbose);
+void OpcodeStr(FemtoEmu_t *emu, bool verbose);
+void OpcodeAdd(FemtoEmu_t *emu, bool verbose);
+void OpcodeSub(FemtoEmu_t *emu, bool verbose);
+void OpcodeCmp(FemtoEmu_t *emu, bool verbose);
+void OpcodeJz(FemtoEmu_t *emu, bool verbose);
+void OpcodeJn(FemtoEmu_t *emu, bool verbose);
+void OpcodeJc(FemtoEmu_t *emu, bool verbose);
+void OpcodeJnc(FemtoEmu_t *emu, bool verbose);
+void OpcodeJbe(FemtoEmu_t *emu, bool verbose);
+void OpcodeJa(FemtoEmu_t *emu, bool verbose);
+void OpcodeJmp(FemtoEmu_t *emu, bool verbose);
+void OpcodeJnz(FemtoEmu_t *emu, bool verbose);
+void OpcodeJnn(FemtoEmu_t *emu, bool verbose);
+void OpcodePush(FemtoEmu_t *emu, bool verbose);
+void OpcodePop(FemtoEmu_t *emu, bool verbose);
+void OpcodeCall(FemtoEmu_t *emu, bool verbose);
+void OpcodeRet(FemtoEmu_t *emu, bool verbose);
+void OpcodeError(FemtoEmu_t *emu, bool verbose);
+
 #endif

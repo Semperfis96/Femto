@@ -30,18 +30,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "../inc/opcode.h"
+#include "../femto.h"
+#include "../common.h"
+#include "../cpu/cpu.h"
 #include "test.h"
-
-#ifdef _ASM_
-    #undef _ASM_
-#endif
-
-#ifndef _EMU_
-#define _EMU_
-    #include "../common.h"
-#endif
-
 
 
 /*** CMD FUNCTIONS ***/
@@ -55,358 +47,364 @@ void cmd_version(void)
 /*** CMD FUNCTIONS END ***/
 
 
-void ResetVar(void)
+void ResetVar(FemtoEmu_t *emu)
 {
-    pc    = 0x0;       /* PROGRAM COUNTER (12BITS) */
-    r[0]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
-    r[1]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
-    r[2]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
-    r[3]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
-    flags = 0x0;       /* FLAGS REGISTER */
-    adrm  = ADRM_IMM;  /* ADDRESSING MODE */
-    halt  = false;     /* CPU IS HALT OR NOT */
-    data  = 0;         /* 8BITS DATA */
-    addr  = 0;         /* 12BITS ADDRESS */
-    dreg  = 0;         /* DESTINATION REGISTER */
-    sreg  = 0;         /* SOURCE REGISTER */
+    emu->pc    = 0x0;       /* PROGRAM COUNTER (12BITS) */
+    emu->r[0]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->r[1]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->r[2]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->r[3]  = 0x0;       /* GP REGISTERS (R0, R1, R2 AND R3) */
+    emu->f[0]  = 0x0;
+    emu->f[1]  = 0x0;
+    emu->f[2]  = 0x0;
+    emu->sp    = 0x0;
+    emu->inst  = 0x0;
+    emu->flags = 0x0;       /* FLAGS REGISTER */
+    emu->adrm  = ADRM_IMM;  /* ADDRESSING MODE */
+    emu->halt  = false;     /* CPU IS HALT OR NOT */
+    emu->data  = 0;         /* 8BITS DATA */
+    emu->addr  = 0;         /* 12BITS ADDRESS */
+    emu->dreg  = 0;         /* DESTINATION REGISTER */
+    emu->sreg  = 0;         /* SOURCE REGISTER */
+    emu->temp  = 0;
 }
 
 
 /*** UNIT TESTING FUNCTIONS ***/
-void TestOpcodeHlt(void)
+void TestOpcodeHlt(FemtoEmu_t *emu)
 {
-    OpcodeHlt();
-    ASSERT_EQ(halt, true, "HLT")
-    ResetVar();
+    OpcodeHlt(emu, false);
+    ASSERT_EQ(HALT, true, "HLT")
+    ResetVar(emu);
 }
 
-void TestOpcodeLdr(void)
+void TestOpcodeLdr(FemtoEmu_t *emu)
 {
-    /* Test for immediate & for register addressing */
-    dreg = 0; /* R0 */
-    sreg = 1; /* R1 */
-    data = 0xFF;
-    r[sreg] = 0xAA;
-    adrm = ADRM_IMM;
+    /* Test for immediate & for register ADDRessing */
+    DREG = 0; /* R0 */
+    SREG = 1; /* R1 */
+    DATA = 0xFF;
+    R[SREG] = 0xAA;
+    ADRM = ADRM_IMM;
 
-    OpcodeLdr();
-    ASSERT_EQ(r[dreg], 0xFF, "LDR (ADRM_IMM)")
+    OpcodeLdr(emu, false);
+    ASSERT_EQ(R[DREG], 0xFF, "LDR (ADRM_IMM)")
 
-    adrm = ADRM_REG;
-    OpcodeLdr();
-    ASSERT_EQ(r[dreg], 0xAA, "LDR (ADRM_REG)")
-    ResetVar();
+    ADRM = ADRM_REG;
+    OpcodeLdr(emu, false);
+    ASSERT_EQ(R[DREG], 0xAA, "LDR (ADRM_REG)")
+    ResetVar(emu);
 }
 
-void TestOpcodeLdm(void)
+void TestOpcodeLdm(FemtoEmu_t *emu)
 {
-    /* Test for immediate & for register addressing */
-    dreg = 0; /* R0 */
-    sreg = 1; /* R1 */
-    addr = 0xEC;
-    r[sreg] = addr;
-    ram[addr] = 0xBA;
-    adrm = ADRM_IMM;
+    /* Test for immediate & for register ADDRessing */
+    DREG = 0; /* R0 */
+    SREG = 1; /* R1 */
+    ADDR = 0xEC;
+    R[SREG] = ADDR;
+    RAM[ADDR] = 0xBA;
+    ADRM = ADRM_IMM;
 
-    OpcodeLdm();
-    ASSERT_EQ(r[dreg], 0xBA, "LDM (ADRM_IMM)")
-    r[dreg] = 0;
+    OpcodeLdm(emu, false);
+    ASSERT_EQ(R[DREG], 0xBA, "LDM (ADRM_IMM)")
+    R[DREG] = 0;
 
-    adrm = ADRM_REG;
-    OpcodeLdm();
-    ASSERT_EQ(r[dreg], 0xBA, "LDM (ADRM_REG)")
-    ResetVar();
+    ADRM = ADRM_REG;
+    OpcodeLdm(emu, false);
+    ASSERT_EQ(R[DREG], 0xBA, "LDM (ADRM_REG)")
+    ResetVar(emu);
 }
 
-void TestOpcodeSti(void)
+void TestOpcodeSti(FemtoEmu_t *emu)
 {
-    dreg = 0; /* R0 */
-    addr = 0xEC;
-    r[dreg] = addr;
-    data = 0xFB;
-    adrm = ADRM_IMM;
+    DREG = 0; /* R0 */
+    ADDR = 0xEC;
+    R[DREG] = ADDR;
+    DATA = 0xFB;
+    ADRM = ADRM_IMM;
 
-    OpcodeSti();
-    ASSERT_EQ(ram[addr], 0xFB, "STI")
+    OpcodeSti(emu, false);
+    ASSERT_EQ(RAM[ADDR], 0xFB, "STI")
 }
 
-void TestOpcodeStr(void)
+void TestOpcodeStr(FemtoEmu_t *emu)
 {
-    /* Test for immediate & for register addressing */
-    dreg = 0; /* R0 */
-    sreg = 1; /* R1 */
-    addr = 0xEC;
-    r[dreg] = addr;
-    r[sreg] = 0xAD;
-    adrm = ADRM_IMM;
+    /* Test for immediate & for register ADDRessing */
+    DREG = 0; /* R0 */
+    SREG = 1; /* R1 */
+    ADDR = 0xEC;
+    R[DREG] = ADDR;
+    R[SREG] = 0xAD;
+    ADRM = ADRM_IMM;
 
-    OpcodeStr();
-    ASSERT_EQ(ram[addr], 0xAD, "STR (ADRM_IMM)")
-    ram[addr] = 0;
+    OpcodeStr(emu, false);
+    ASSERT_EQ(RAM[ADDR], 0xAD, "STR (ADRM_IMM)")
+    RAM[ADDR] = 0;
 
-    adrm = ADRM_REG;
-    OpcodeStr();
-    ASSERT_EQ(ram[addr], 0xAD, "STR (ADRM_REG)")
-    ResetVar();
+    ADRM = ADRM_REG;
+    OpcodeStr(emu, false);
+    ASSERT_EQ(RAM[ADDR], 0xAD, "STR (ADRM_REG)")
+    ResetVar(emu);
 }
 
-void TestOpcodeAdd(void)
+void TestOpcodeAdd(FemtoEmu_t *emu)
 {
-    dreg = 0;
-    sreg = 1;
-    r[dreg] = 20;
-    r[sreg] = 71;
-    adrm = ADRM_REG;
+    DREG = 0;
+    SREG = 1;
+    R[DREG] = 20;
+    R[SREG] = 71;
+    ADRM = ADRM_REG;
 
-    OpcodeAdd();
-    ASSERT_EQ(r[dreg], 91, "ADD")
+    OpcodeAdd(emu, false);
+    ASSERT_EQ(R[DREG], 91, "ADD")
 
-    r[dreg] = 255;
-    r[sreg] = 2;
-    OpcodeAdd();
+    R[DREG] = 255;
+    R[SREG] = 2;
+    OpcodeAdd(emu, false);
     ASSERT_EQ(CFLAG, 1, "ADD (CFLAG)")
-    ResetVar();
+    ResetVar(emu);
 }
 
-void TestOpcodeSub(void)
+void TestOpcodeSub(FemtoEmu_t *emu)
 {
-    dreg = 0;
-    sreg = 1;
-    r[dreg] = 89;
-    r[sreg] = 17;
-    adrm = ADRM_REG;
+    DREG = 0;
+    SREG = 1;
+    R[DREG] = 89;
+    R[SREG] = 17;
+    ADRM = ADRM_REG;
 
-    OpcodeSub();
-    ASSERT_EQ(r[dreg], (89-17), "SUB")
+    OpcodeSub(emu, false);
+    ASSERT_EQ(R[DREG], (89-17), "SUB")
 
-    r[dreg] = 58;
-    r[sreg] = 192;
-    OpcodeSub();
+    R[DREG] = 58;
+    R[SREG] = 192;
+    OpcodeSub(emu, false);
     ASSERT_EQ(NFLAG, 1, "SUB (NFLAG)")
-    ResetVar();
+    ResetVar(emu);
 }
 
-void TestOpcodeCmp(void)
+void TestOpcodeCmp(FemtoEmu_t *emu)
 {
-    dreg = 0;
-    sreg = 1;
-    r[dreg] = 34;
-    r[sreg] = 99;
-    adrm = ADRM_REG;
+    DREG = 0;
+    SREG = 1;
+    R[DREG] = 34;
+    R[SREG] = 99;
+    ADRM = ADRM_REG;
 
-    OpcodeCmp();
+    OpcodeCmp(emu, false);
     ASSERT_EQ(NFLAG, 1, "CMP (NFLAG)")
 
-    r[dreg] = 77;
-    r[sreg] = 77;
-    OpcodeCmp();
+    R[DREG] = 77;
+    R[SREG] = 77;
+    OpcodeCmp(emu, false);
     ASSERT_EQ(ZFLAG, 1, "CMP (ZFLAG)")
-    ResetVar();
+    ResetVar(emu);
 }
 
-void TestOpcodeJmp(void)
+void TestOpcodeJmp(FemtoEmu_t *emu)
 {
-    addr = 0xCAD;
-    adrm = ADRM_IMM;
+    ADDR = 0xCAD;
+    ADRM = ADRM_IMM;
 
-    OpcodeJmp();
-    ASSERT_EQ(pc, 0xCAD, "JMP")
-    ResetVar();
+    OpcodeJmp(emu, false);
+    ASSERT_EQ(PC, 0xCAD, "JMP")
+    ResetVar(emu);
 }
 
-void TestOpcodeJz(void)
+void TestOpcodeJz(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJz();
-    ASSERT_EQ(pc, 0, "JZ NOT TAKEN (ZFLAG = 0)")
+    OpcodeJz(emu, false);
+    ASSERT_EQ(PC, 0, "JZ NOT TAKEN (ZFLAG = 0)")
 
-    flags = 0x1;
-    OpcodeJz();
-    ASSERT_EQ(pc, 0xF4A, "JZ TAKEN (ZFLAG = 1)")
-    ResetVar();
+    FLAGS = 0x1;
+    OpcodeJz(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JZ TAKEN (ZFLAG = 1)")
+    ResetVar(emu);
 }
 
-void TestOpcodeJnz(void)
+void TestOpcodeJnz(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJnz();
-    ASSERT_EQ(pc, 0xF4A, "JNZ TAKEN (ZFLAG = 0)")
+    OpcodeJnz(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JNZ TAKEN (ZFLAG = 0)")
 
-    flags = 0x1;
-    pc = 0;
-    OpcodeJnz();
-    ASSERT_EQ(pc, 0, "JNZ NOT TAKEN (ZFLAG = 1)")
-    ResetVar();
+    FLAGS = 0x1;
+    PC = 0;
+    OpcodeJnz(emu, false);
+    ASSERT_EQ(PC, 0, "JNZ NOT TAKEN (ZFLAG = 1)")
+    ResetVar(emu);
 }
 
-void TestOpcodeJc(void)
+void TestOpcodeJc(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJc();
-    ASSERT_EQ(pc, 0, "JC NOT TAKEN (CFLAG = 0)")
+    OpcodeJc(emu, false);
+    ASSERT_EQ(PC, 0, "JC NOT TAKEN (CFLAG = 0)")
 
-    flags = 0x2;
-    OpcodeJc();
-    ASSERT_EQ(pc, 0xF4A, "JC TAKEN (CFLAG = 1)")
-    ResetVar();
+    FLAGS = 0x2;
+    OpcodeJc(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JC TAKEN (CFLAG = 1)")
+    ResetVar(emu);
 }
 
-void TestOpcodeJnc(void)
+void TestOpcodeJnc(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJnc();
-    ASSERT_EQ(pc, 0xF4A, "JNC TAKEN (CFLAG = 0)")
+    OpcodeJnc(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JNC TAKEN (CFLAG = 0)")
 
-    flags = 0x2;
-    pc = 0;
-    OpcodeJnc();
-    ASSERT_EQ(pc, 0, "JNC NOT TAKEN (CFLAG = 1)")
-    ResetVar();
+    FLAGS = 0x2;
+    PC = 0;
+    OpcodeJnc(emu, false);
+    ASSERT_EQ(PC, 0, "JNC NOT TAKEN (CFLAG = 1)")
+    ResetVar(emu);
 }
 
-void TestOpcodeJn(void)
+void TestOpcodeJn(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJn();
-    ASSERT_EQ(pc, 0, "JN NOT TAKEN (NFLAG = 0)")
+    OpcodeJn(emu, false);
+    ASSERT_EQ(PC, 0, "JN NOT TAKEN (NFLAG = 0)")
 
-    flags = 0x4;
-    OpcodeJn();
-    ASSERT_EQ(pc, 0xF4A, "JN TAKEN (NFLAG = 1)")
-    ResetVar();
+    FLAGS = 0x4;
+    OpcodeJn(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JN TAKEN (NFLAG = 1)")
+    ResetVar(emu);
 }
 
-void TestOpcodeJnn(void)
+void TestOpcodeJnn(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJnn();
-    ASSERT_EQ(pc, 0xF4A, "JNN TAKEN (NFLAG = 0)")
+    OpcodeJnn(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JNN TAKEN (NFLAG = 0)")
 
-    flags = 0x4;
-    pc = 0;
-    OpcodeJnn();
-    ASSERT_EQ(pc, 0, "JNN NOT TAKEN (NFLAG = 1)")
-    ResetVar();
+    FLAGS = 0x4;
+    PC = 0;
+    OpcodeJnn(emu, false);
+    ASSERT_EQ(PC, 0, "JNN NOT TAKEN (NFLAG = 1)")
+    ResetVar(emu);
 }
 
-void TestOpcodeJbe(void)
+void TestOpcodeJbe(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJbe();
-    ASSERT_EQ(pc, 0, "JBE NOT TAKEN (CFLAG = 0 AND ZFLAG = 0)")
+    OpcodeJbe(emu, false);
+    ASSERT_EQ(PC, 0, "JBE NOT TAKEN (CFLAG = 0 AND ZFLAG = 0)")
 
-    flags = 0x2;
-    pc = 0;
-    OpcodeJbe();
-    ASSERT_EQ(pc, 0xF4A, "JBE TAKEN (CFLAG = 1 AND ZFLAG = 0)")
+    FLAGS = 0x2;
+    PC = 0;
+    OpcodeJbe(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JBE TAKEN (CFLAG = 1 AND ZFLAG = 0)")
 
-    flags = 0x1;
-    pc = 0;
-    OpcodeJbe();
-    ASSERT_EQ(pc, 0xF4A, "JBE TAKEN (CFLAG = 0 AND ZFLAG = 1)")
+    FLAGS = 0x1;
+    PC = 0;
+    OpcodeJbe(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JBE TAKEN (CFLAG = 0 AND ZFLAG = 1)")
 
 
-    flags = 0x3;
-    pc = 0;
-    OpcodeJbe();
-    ASSERT_EQ(pc, 0xF4A, "JBE TAKEN (CFLAG = 1 AND ZFLAG = 1)")
-    ResetVar();
+    FLAGS = 0x3;
+    PC = 0;
+    OpcodeJbe(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JBE TAKEN (CFLAG = 1 AND ZFLAG = 1)")
+    ResetVar(emu);
 }
 
-void TestOpcodeJa(void)
+void TestOpcodeJa(FemtoEmu_t *emu)
 {
-    addr = 0xF4A;
-    adrm = ADRM_IMM;
+    ADDR = 0xF4A;
+    ADRM = ADRM_IMM;
 
-    OpcodeJa();
-    ASSERT_EQ(pc, 0xF4A, "JA TAKEN (CFLAG = 0 (1) AND ZFLAG = 0 (1))")
+    OpcodeJa(emu, false);
+    ASSERT_EQ(PC, 0xF4A, "JA TAKEN (CFLAG = 0 (1) AND ZFLAG = 0 (1))")
 
-    flags = 0x2;
-    pc = 0;
-    OpcodeJa();
-    ASSERT_EQ(pc, 0, "JA NOT TAKEN (CFLAG = 1 (0) AND ZFLAG = 0 (1))")
+    FLAGS = 0x2;
+    PC = 0;
+    OpcodeJa(emu, false);
+    ASSERT_EQ(PC, 0, "JA NOT TAKEN (CFLAG = 1 (0) AND ZFLAG = 0 (1))")
 
-    flags = 0x1;
-    pc = 0;
-    OpcodeJa();
-    ASSERT_EQ(pc, 0, "JA NOT TAKEN (CFLAG = 0 (1) AND ZFLAG = 1 (0))")
+    FLAGS = 0x1;
+    PC = 0;
+    OpcodeJa(emu, false);
+    ASSERT_EQ(PC, 0, "JA NOT TAKEN (CFLAG = 0 (1) AND ZFLAG = 1 (0))")
 
 
-    flags = 0x3;
-    pc = 0;
-    OpcodeJa();
-    ASSERT_EQ(pc, 0, "JA NOT TAKEN (CFLAG = 1 (0) AND ZFLAG = 1 (0))")
-    ResetVar();
+    FLAGS = 0x3;
+    PC = 0;
+    OpcodeJa(emu, false);
+    ASSERT_EQ(PC, 0, "JA NOT TAKEN (CFLAG = 1 (0) AND ZFLAG = 1 (0))")
+    ResetVar(emu);
 }
 
-void TestOpcodePush(void)
+void TestOpcodePush(FemtoEmu_t *emu)
 {
-    data    = 0xEA;
-    dreg    = 0;
-    r[dreg] = 0x74;
-    adrm    = ADRM_IMM;
+    DATA    = 0xEA;
+    DREG    = 0;
+    R[DREG] = 0x74;
+    ADRM    = ADRM_IMM;
 
-    OpcodePush();
-    ASSERT_EQ(ram[STACK_BASE + (--sp)], 0xEA, "PUSH (IMM)")
+    OpcodePush(emu, false);
+    ASSERT_EQ(RAM[STACK_BASE + (--SP)], 0xEA, "PUSH (IMM)")
 
-    adrm = ADRM_REG;
-    sp = 0;
-    OpcodePush();
-    ASSERT_EQ(ram[STACK_BASE + (--sp)], 0x74, "PUSH (REG)")
-    ResetVar();
+    ADRM = ADRM_REG;
+    SP = 0;
+    OpcodePush(emu, false);
+    ASSERT_EQ(RAM[STACK_BASE + (--SP)], 0x74, "PUSH (REG)")
+    ResetVar(emu);
 }
 
-void TestOpcodePop(void)
+void TestOpcodePop(FemtoEmu_t *emu)
 {
-    data    = 0x9E;
-    dreg    = 0;
-    adrm    = ADRM_IMM;
+    DATA    = 0x9E;
+    DREG    = 0;
+    ADRM    = ADRM_IMM;
 
-    OpcodePush();
+    OpcodePush(emu, false);
     
-    adrm = ADRM_REG;
-    OpcodePop();
-    ASSERT_EQ(r[dreg], 0x9E, "POP")
-    ResetVar();
+    ADRM = ADRM_REG;
+    OpcodePop(emu, false);
+    ASSERT_EQ(R[DREG], 0x9E, "POP")
+    ResetVar(emu);
 }
 
-void TestOpcodeCall(void)
+void TestOpcodeCall(FemtoEmu_t *emu)
 {
-    pc   = 0x379;
-    addr = 0x666;
-    adrm = ADRM_IMM;
+    PC   = 0x379;
+    ADDR = 0x666;
+    ADRM = ADRM_IMM;
 
-    OpcodeCall();
-    ASSERT_EQ(pc, 0x666, "CALL (NEW PC CHECK)")
-    ASSERT_EQ(StackPopByte(), 0x3, "CALL (PC HIGH STACK CHECK)")
-    ASSERT_EQ(StackPopByte(), 0x79, "CALL (PC LOW STACK CHECK)")
-    ResetVar();
+    OpcodeCall(emu, false);
+    ASSERT_EQ(PC, 0x666, "CALL (NEW PC CHECK)")
+    ASSERT_EQ(StackPopByte(emu), 0x3, "CALL (PC HIGH STACK CHECK)")
+    ASSERT_EQ(StackPopByte(emu), 0x79, "CALL (PC LOW STACK CHECK)")
+    ResetVar(emu);
 }
 
-void TestOpcodeRet(void)
+void TestOpcodeRet(FemtoEmu_t *emu)
 {
-    pc = 0xA0E;
+    PC = 0xA0E;
 
-    StackPushByte(0x79);
-    StackPushByte(0x3);
-    OpcodeRet();
-    ASSERT_EQ(pc, 0x379, "RET")
+    StackPushByte(emu, 0x79);
+    StackPushByte(emu, 0x3);
+    OpcodeRet(emu, false);
+    ASSERT_EQ(PC, 0x379, "RET")
 
-    ResetVar();
+    ResetVar(emu);
 }
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
@@ -414,37 +412,53 @@ void TestOpcodeRet(void)
 /*** PROGRAM ENTRY POINT ***/
 int main(void)
 {
+    FemtoEmu_t *test_emu = NULL;
+
+
     cmd_version();
 
-    ram = malloc(4096 * sizeof(uint8_t));
-    if (ram == NULL)
+    /* EMULATION STATE ALLOCATION */
+    test_emu = malloc(sizeof(FemtoEmu_t));
+    if (test_emu == NULL)
     {
-        printf("ERROR: CAN'T ALLOCATE RAM !!!\n");
-        return -1;
+        printf("ERROR (main): CAN'T ALLOCATE EMULATION STATE!!!\n");
+        exit(-1);
+    }
+    ResetVar(test_emu);
+
+
+    /* RAM ALLOCATION */
+    test_emu->ram = malloc(4 * 1024 * sizeof(uint8_t));
+    if (test_emu->ram == NULL)
+    {
+        printf("ERROR (main): CAN'T ALLOCATE VIRTUAL RAM !!!\n");
+        free(test_emu);
+        exit(-1);
     }
 
+
     /* EXECUTE TEST */
-    TestOpcodeHlt();
-    TestOpcodeLdr();
-    TestOpcodeLdm();
-    TestOpcodeSti();
-    TestOpcodeStr();
-    TestOpcodeAdd();
-    TestOpcodeSub();
-    TestOpcodeCmp();
-    TestOpcodeJmp();
-    TestOpcodeJz();
-    TestOpcodeJnz();
-    TestOpcodeJc();
-    TestOpcodeJnc();
-    TestOpcodeJn();
-    TestOpcodeJnn();
-    TestOpcodeJbe();
-    TestOpcodeJa();
-    TestOpcodePush();
-    TestOpcodePop();
-    TestOpcodeCall();
-    TestOpcodeRet();
+    TestOpcodeHlt(test_emu);
+    TestOpcodeLdr(test_emu);
+    TestOpcodeLdm(test_emu);
+    TestOpcodeSti(test_emu);
+    TestOpcodeStr(test_emu);
+    TestOpcodeAdd(test_emu);
+    TestOpcodeSub(test_emu);
+    TestOpcodeCmp(test_emu);
+    TestOpcodeJmp(test_emu);
+    TestOpcodeJz(test_emu);
+    TestOpcodeJnz(test_emu);
+    TestOpcodeJc(test_emu);
+    TestOpcodeJnc(test_emu);
+    TestOpcodeJn(test_emu);
+    TestOpcodeJnn(test_emu);
+    TestOpcodeJbe(test_emu);
+    TestOpcodeJa(test_emu);
+    TestOpcodePush(test_emu);
+    TestOpcodePop(test_emu);
+    TestOpcodeCall(test_emu);
+    TestOpcodeRet(test_emu);
 
     return 0;
 }
