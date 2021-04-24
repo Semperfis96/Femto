@@ -77,6 +77,8 @@ typedef enum inst
     JNN  = 0x10, /* JUMP IF NOT NEGATIVE */
     PUSH = 0x11,
     POP  = 0x12,
+    CALL = 0x13,
+    RET  = 0x14,
 } inst_t;
 
 
@@ -137,7 +139,9 @@ typedef enum inst
         {"JBE" , JBE, IMM,  NONE, true},
         {"JA"  , JA , IMM,  NONE, true},
         {"PUSH", PUSH,BOTH, NONE, false},
-        {"POP" , POP, REG,  NONE, false}
+        {"POP" , POP, REG,  NONE, false},
+        {"CALL", CALL,IMM,  NONE, true},
+        {"RET" , RET, NONE, NONE, false},
     };
 
     const trans_t reg_trans_table[] =

@@ -383,6 +383,31 @@ void TestOpcodePop(void)
     ASSERT_EQ(r[dreg], 0x9E, "POP")
     ResetVar();
 }
+
+void TestOpcodeCall(void)
+{
+    pc   = 0x379;
+    addr = 0x666;
+    adrm = ADRM_IMM;
+
+    OpcodeCall();
+    ASSERT_EQ(pc, 0x666, "CALL (NEW PC CHECK)")
+    ASSERT_EQ(StackPopByte(), 0x3, "CALL (PC HIGH STACK CHECK)")
+    ASSERT_EQ(StackPopByte(), 0x79, "CALL (PC LOW STACK CHECK)")
+    ResetVar();
+}
+
+void TestOpcodeRet(void)
+{
+    pc = 0xA0E;
+
+    StackPushByte(0x79);
+    StackPushByte(0x3);
+    OpcodeRet();
+    ASSERT_EQ(pc, 0x379, "RET")
+
+    ResetVar();
+}
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
 
@@ -418,6 +443,8 @@ int main(void)
     TestOpcodeJa();
     TestOpcodePush();
     TestOpcodePop();
+    TestOpcodeCall();
+    TestOpcodeRet();
 
     return 0;
 }

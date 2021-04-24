@@ -68,7 +68,6 @@ uint8_t test_update_flags(int testing)
     return flags;
 }
 
-
 void print_flags(uint8_t flags)
 {
     if (CHKVB) printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
@@ -335,6 +334,29 @@ void OpcodePop(void)
     r[dreg] = StackPopByte();
     if (CHKVB) printf("POP IN R%d (0x%02X); SP = 0x%02X\n", dreg, r[dreg], sp);
 }
+
+void OpcodeCall(void)
+{
+    /* CALL IMM */
+    uint8_t pc_low  = (uint8_t)(pc & 0x00FF);
+    uint8_t pc_high = (uint8_t)((pc & 0x0F00) >> 8);
+
+    StackPushByte(pc_low);   /* PUSH LOW PART OF PC */
+    StackPushByte(pc_high);  /* PUSH HIGH PART OF PC */
+    pc = addr;
+    if (CHKVB) printf("CALL TO 0x%03X; LOW PC = 0x%02X & HIGH PC = 0x%01X\n", addr, pc_low, pc_high);
+}
+
+void OpcodeRet(void)
+{
+    /* RET */
+    uint8_t pc_high = StackPopByte();
+    uint8_t pc_low  = StackPopByte();
+
+    pc = (pc_high << 8) | pc_low;
+    if (CHKVB) printf("RET TO 0x%03X; LOW PC = 0x%02X & HIGH PC = 0x%01X\n", pc, pc_low, pc_high); 
+
+}
 /*** END OF OPCODE FUNCTIONS ***/
 
 
@@ -342,7 +364,7 @@ FemtoOpcode OpcodeFunc[0x20] =
 {
     OpcodeHlt,   OpcodeLdr,   OpcodeLdm,   OpcodeSti,   OpcodeStr,   OpcodeAdd,   OpcodeSub,   OpcodeCmp,
     OpcodeJz,    OpcodeJn,    OpcodeJc,    OpcodeJnc,   OpcodeJbe,   OpcodeJa,    OpcodeJmp,   OpcodeJnz,
-    OpcodeJnn,   OpcodePush,  OpcodePop,   OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError,
+    OpcodeJnn,   OpcodePush,  OpcodePop,   OpcodeCall,  OpcodeRet,   OpcodeError, OpcodeError, OpcodeError,
     OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
 };
 #endif
