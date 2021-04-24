@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "../opcode.h"
+#include "../inc/opcode.h"
 #include "test.h"
 
 #ifdef _ASM_

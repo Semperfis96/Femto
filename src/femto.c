@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "opcode.h"
+#include "./inc/opcode.h"
 
 #ifdef _ASM_
     #undef _ASM_
@@ -38,7 +38,7 @@
 
 #ifndef _EMU_
 #define _EMU_
-    #include "common.h"
+    #include "./inc/common.h"
 #endif
 
 

@@ -35,7 +35,7 @@
 
 #ifndef _ASM_
     #define _ASM_
-    #include "common.h"
+    #include "../inc/common.h"
 #endif
 
 #define DISM_BUFFER 32

@@ -11,10 +11,10 @@ default: all
 $(BUILD_DIR)/femto.o: $(SRC_DIR)/femto.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 
-$(BUILD_DIR)/asm.o: $(SRC_DIR)/asm.c
+$(BUILD_DIR)/asm.o: $(SRC_DIR)/utils/asm.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 
-$(BUILD_DIR)/dism.o: $(SRC_DIR)/dism.c
+$(BUILD_DIR)/dism.o: $(SRC_DIR)/utils/dism.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 
 $(BUILD_DIR)/test.o: $(SRC_DIR)/test/test.c
