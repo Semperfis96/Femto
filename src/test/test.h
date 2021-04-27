@@ -31,11 +31,9 @@
 #define ERROR(s)    printf("!!! ERROR : %s TEST NOT PASSED !!!\n", s); \
                     exit(-1);
 
-#define PASSED(s)   printf("==> %s TEST PASSED\n", s);
-
 #define ASSERT_EQ(a, b, s)  if (a == b)                                         \
                             {                                                   \
-                                PASSED(s)                                       \
+                                printf("==> %s TEST PASSED\n", s);              \
                             }                                                   \
                             else                                                \
                             {                                                   \
@@ -43,30 +41,31 @@
                                 ERROR(s)                                        \
                             }
 
-void StackPushByte(FemtoEmu_t *emu, uint8_t byte);
-uint8_t StackPopByte(FemtoEmu_t *emu);
 
-void OpcodeHlt(FemtoEmu_t *emu, bool verbose);
-void OpcodeLdr(FemtoEmu_t *emu, bool verbose);
-void OpcodeLdm(FemtoEmu_t *emu, bool verbose);
-void OpcodeSti(FemtoEmu_t *emu, bool verbose);
-void OpcodeStr(FemtoEmu_t *emu, bool verbose);
-void OpcodeAdd(FemtoEmu_t *emu, bool verbose);
-void OpcodeSub(FemtoEmu_t *emu, bool verbose);
-void OpcodeCmp(FemtoEmu_t *emu, bool verbose);
-void OpcodeJz(FemtoEmu_t *emu, bool verbose);
-void OpcodeJn(FemtoEmu_t *emu, bool verbose);
-void OpcodeJc(FemtoEmu_t *emu, bool verbose);
-void OpcodeJnc(FemtoEmu_t *emu, bool verbose);
-void OpcodeJbe(FemtoEmu_t *emu, bool verbose);
-void OpcodeJa(FemtoEmu_t *emu, bool verbose);
-void OpcodeJmp(FemtoEmu_t *emu, bool verbose);
-void OpcodeJnz(FemtoEmu_t *emu, bool verbose);
-void OpcodeJnn(FemtoEmu_t *emu, bool verbose);
-void OpcodePush(FemtoEmu_t *emu, bool verbose);
-void OpcodePop(FemtoEmu_t *emu, bool verbose);
-void OpcodeCall(FemtoEmu_t *emu, bool verbose);
-void OpcodeRet(FemtoEmu_t *emu, bool verbose);
-void OpcodeError(FemtoEmu_t *emu, bool verbose);
+/*** REFERENCE TO CPU.C FUNCTION THAT AREN'T EXPLICITLY EXPORTED IN A HEADER FILE, BUT LINK AT COMPILE TIME WITH CPU.O ***/
+void    StackPushByte(FemtoEmu_t *emu, uint8_t byte);
+uint8_t StackPopByte(FemtoEmu_t *emu);
+void    OpcodeHlt(FemtoEmu_t *emu, bool verbose);
+void    OpcodeLdr(FemtoEmu_t *emu, bool verbose);
+void    OpcodeLdm(FemtoEmu_t *emu, bool verbose);
+void    OpcodeSti(FemtoEmu_t *emu, bool verbose);
+void    OpcodeStr(FemtoEmu_t *emu, bool verbose);
+void    OpcodeAdd(FemtoEmu_t *emu, bool verbose);
+void    OpcodeSub(FemtoEmu_t *emu, bool verbose);
+void    OpcodeCmp(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJz(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJn(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJc(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJnc(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJbe(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJa(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJmp(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJnz(FemtoEmu_t *emu, bool verbose);
+void    OpcodeJnn(FemtoEmu_t *emu, bool verbose);
+void    OpcodePush(FemtoEmu_t *emu, bool verbose);
+void    OpcodePop(FemtoEmu_t *emu, bool verbose);
+void    OpcodeCall(FemtoEmu_t *emu, bool verbose);
+void    OpcodeRet(FemtoEmu_t *emu, bool verbose);
+void    OpcodeError(FemtoEmu_t *emu, bool verbose);
 
 #endif

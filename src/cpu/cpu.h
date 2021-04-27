@@ -30,6 +30,7 @@
 
 #include "../femto.h"
 
+
 #define DREG  emu->dreg
 #define SREG  emu->sreg
 #define R     emu->r

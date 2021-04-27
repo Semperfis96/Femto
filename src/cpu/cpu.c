@@ -34,7 +34,7 @@ typedef void (*FemtoOpcode)(FemtoEmu_t *emu, bool verbose);
 
 
 /*** HELPING FUNCTIONS ***/
-uint8_t test_update_flags(int testing)
+uint8_t UpdateFlags(int testing)
 {
     /* reset the flags */
     uint8_t temp_flags = 0;
@@ -59,7 +59,7 @@ uint8_t test_update_flags(int testing)
     return temp_flags;
 }
 
-void print_flags(FemtoEmu_t *emu, bool verbose)
+void PrintFlags(FemtoEmu_t *emu, bool verbose)
 {
     if (verbose == true) printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
 }
@@ -158,31 +158,31 @@ void OpcodeAdd(FemtoEmu_t *emu, bool verbose)
 {
     /* ADD REG, REG */
     TEMP = (int)R[DREG] + (int)R[SREG];
-    FLAGS = test_update_flags(TEMP);
+    FLAGS = UpdateFlags(TEMP);
     TEMP = R[DREG];
     R[DREG] += R[SREG];
     if (verbose == true) printf("ADD: R%d (0x%02X) = R%d (0x%02X) + R%d (0x%02X)\n", DREG, R[DREG], DREG, R[DREG] - R[SREG], SREG, R[SREG]);
-    print_flags(emu, verbose);
+    PrintFlags(emu, verbose);
 }
                 
 void OpcodeSub(FemtoEmu_t *emu, bool verbose)
 {
     /* SUB REG, REG */
     TEMP = (int)R[DREG] - (int)R[SREG];
-    FLAGS = test_update_flags(TEMP);
+    FLAGS = UpdateFlags(TEMP);
     TEMP = R[DREG];
     R[DREG] -= R[SREG];
     if (verbose == true) printf("SUB: R%d (0x%02X) = R%d (0x%02X) - R%d (0x%02X)\n", DREG, R[DREG], DREG, TEMP, SREG, R[SREG]);
-    print_flags(emu, verbose);
+    PrintFlags(emu, verbose);
 }
                 
 void OpcodeCmp(FemtoEmu_t *emu, bool verbose)
 {
     /* CMP REG, REG */
     TEMP = R[DREG] - R[SREG];
-    FLAGS = test_update_flags(TEMP);
+    FLAGS = UpdateFlags(TEMP);
     if (verbose == true) printf("CMP: R%d (0x%02X), R%d (0x%02X)\n", DREG, R[DREG], SREG, R[SREG]);
-    print_flags(emu, verbose);
+    PrintFlags(emu, verbose);
 }
                 
 void OpcodeJmp(FemtoEmu_t *emu, bool verbose)
@@ -351,6 +351,7 @@ void OpcodeRet(FemtoEmu_t *emu, bool verbose)
 /*** END OF OPCODE FUNCTIONS ***/
 
 
+/*** OPCODE FUNCTION POINTER ARRAY, BETTER THAN INTERPRETED OR SWITCH STATEMENT EMULATION ***/
 FemtoOpcode OpcodeFunc[0x20] =
 {
     OpcodeHlt,   OpcodeLdr,   OpcodeLdm,   OpcodeSti,   OpcodeStr,   OpcodeAdd,   OpcodeSub,   OpcodeCmp,

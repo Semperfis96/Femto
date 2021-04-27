@@ -34,7 +34,7 @@
 
 
 /*** HELPING FUNCTIONS ***/
-int rom_load(const char *rom_file, uint8_t *ram)
+int RomLoad(const char *rom_file, uint8_t *ram)
 {
     FILE *rom  = NULL;
     long  size = 0L;
@@ -42,7 +42,7 @@ int rom_load(const char *rom_file, uint8_t *ram)
     rom = fopen(rom_file, "rb");
     if (rom == NULL)
     {
-        printf("ERROR (rom_load): CAN'T OPEN FILE \"%s\" !!!\n", rom_file);
+        printf("ERROR (RomLoad): CAN'T OPEN FILE \"%s\" !!!\n", rom_file);
         return -1;
     }
 
@@ -54,7 +54,7 @@ int rom_load(const char *rom_file, uint8_t *ram)
     /* READ ROM TO RAM AT 0x000 */
     if (fread((void *)ram, sizeof(uint8_t), (size_t)size, rom) != (size_t)size)
     {
-        printf("ERROR (rom_load): CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", rom_file);
+        printf("ERROR (RomLoad): CAN'T READ PROPERLY THE FILE \"%s\" !!!\n", rom_file);
         fclose(rom);
         return -1;
     }
@@ -116,7 +116,7 @@ FemtoEmu_t * EmuInit(const char *rom_file, bool verbose)
 
 
     /* ROM LOADING (BINARY FILE) INTO RAM */
-    if (rom_load(rom_file, temp->ram) != 0)
+    if (RomLoad(rom_file, temp->ram) != 0)
     {
         free(temp->ram);
         free(temp);
