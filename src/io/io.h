@@ -31,7 +31,13 @@
 #include <stdint.h>
 
 
-void RegisterInputFunc(void *func, uint8_t io_port);
-void RegisterOutputFunc(void *func, uint8_t io_port);
+#define INPFUNC(n)      uint8_t n(void)
+#define OUTFUNC(n, d)   void    n(uint8_t d)
+
+void    RegisterInputFunc(void *func, uint8_t io_port);
+void    RegisterOutputFunc(void *func, uint8_t io_port);
+uint8_t In(uint8_t io_port);
+void    Out(uint8_t data, uint8_t io_port);
+
 
 #endif

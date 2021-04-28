@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "cpu/cpu.h"
+#include "io/io.h"
 #include "common.h"
 
 

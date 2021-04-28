@@ -32,17 +32,52 @@
 #include "io.h"
 
 
-typedef void (*InputFunc)(FemtoEmu_t *emu, bool verbose);
-typedef void (*OutputFunc)(FemtoEmu_t *emu, bool verbose);
+typedef uint8_t (*InFunc)(void);
+typedef void    (*OutFunc)(uint8_t data);
+
+InFunc  InputFunction[256]  = {NULL};
+OutFunc OutputFunction[256] = {NULL};
 
 
 void RegisterInputFunc(void *func, uint8_t io_port)
 {
-
+    /* VERIFY IF ANOTHER FUNCTION ISN'T ALREADY REGISTER FOR THIS SPECIFIC PORT */
+    if (InputFunction[io_port] == NULL)
+    {
+        InputFunction[io_port] = func;
+        // DEBUG:
+        printf("DEBUG ==> RegisterInputFunc(): REGISTER func %p to INPUT PORT 0x%02X\n", func, io_port);
+    }
+    else
+    {
+        printf("ERROR: CAN'T REGISTER INPUT FUNCTION %p ==> HARDWARE CONFLICT FOR INPUT PORT 0x%02X !!!\n", func, io_port);
+    }
 }
 
 
 void RegisterOutputFunc(void *func, uint8_t io_port)
 {
+    /* VERIFY IF ANOTHER FUNCTION ISN'T ALREADY REGISTER FOR THIS SPECIFIC PORT */
+    if (OutputFunction[io_port] == NULL)
+    {
+        OutputFunction[io_port] = func;
+        // DEBUG:
+        printf("DEBUG ==> RegisterOutputFunc(): REGISTER func %p to OUTPUT PORT 0x%02X\n", func, io_port);
+    }
+    else
+    {
+        printf("ERROR: CAN'T REGISTER OUTPUT FUNCTION %p ==> HARDWARE CONFLICT FOR OUTPUT PORT 0x%02X !!!\n", func, io_port);
+    }
+}
 
+
+uint8_t In(uint8_t io_port)
+{
+    return (*InputFunction[io_port])();
+}
+
+
+void Out(uint8_t data, uint8_t io_port)
+{
+    (*OutputFunction[io_port])(data);
 }
