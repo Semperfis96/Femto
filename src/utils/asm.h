@@ -51,6 +51,8 @@ typedef enum inst
     POP  = 0x12,
     CALL = 0x13,
     RET  = 0x14,
+    IN   = 0x15,
+    OUT  = 0x16
 } inst_t;
 
 typedef enum field_adrm
@@ -93,6 +95,8 @@ const trans_t inst_trans_table[] =
     {"POP" , POP, REG,  NONE, false},
     {"CALL", CALL,IMM,  NONE, true},
     {"RET" , RET, NONE, NONE, false},
+    {"IN"  , IN,  REG,  BOTH, false},
+    {"OUT" , OUT, BOTH, REG,  false},
 };
 
 const trans_t reg_trans_table[] =

@@ -33,6 +33,7 @@
 #include "../femto.h"
 #include "../common.h"
 #include "../cpu/cpu.h"
+#include "../io/io.h"
 #include "test.h"
 
 
@@ -406,6 +407,57 @@ void TestOpcodeRet(FemtoEmu_t *emu)
 
     ResetVar(emu);
 }
+
+
+/*** IO OPCODE TESTING ***/
+uint8_t TestInFunc(void)
+{
+    return 0x91;
+}
+
+void TestOutFunc(uint8_t data)
+{
+    ASSERT_EQ(data, 0xAF, "OUT");
+}
+
+
+void TestOpcodeIn(FemtoEmu_t *emu)
+{
+    ADRM = ADRM_IMM;
+    DREG = 0;
+    DATA = 0x10;
+    SREG = 1;
+    R[SREG] = 0x10;
+
+    RegisterInputFunc(TestInFunc, 0x10);
+    ASSERT_EQ(In(0x10), 0x91, "IN (IMM)")
+
+    ADRM = ADRM_REG;
+    R[DREG] = 0;
+    ASSERT_EQ(In(0x10), 0x91, "IN (REG)")
+
+    ResetVar(emu);
+}
+
+void TestOpcodeOut(FemtoEmu_t *emu)
+{
+    ADRM = ADRM_IMM;
+    DREG = 1;
+    SREG = 0;
+    R[SREG] = 0xAC;
+    R[DREG] = 0x78;
+    DATA    = 0x78;
+
+    RegisterOutputFunc(TestOutFunc, 0x78);
+    Out(0xAF, 0x78);
+
+    ADRM = ADRM_REG;
+    Out(0xAF, 0x78);
+
+    ResetVar(emu);
+}
+/*** END OF IO OPCODE TESTING ***/
+
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
 
@@ -459,6 +511,8 @@ int main(void)
     TestOpcodePop(test_emu);
     TestOpcodeCall(test_emu);
     TestOpcodeRet(test_emu);
+    TestOpcodeIn(test_emu);
+    TestOpcodeOut(test_emu);
 
     return 0;
 }

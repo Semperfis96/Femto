@@ -3,7 +3,7 @@ CFLAGS    = -Wall -Wextra -g
 CLIBS     =
 BUILD_DIR = ./build
 SRC_DIR   = ./src
-OBJS      = $(BUILD_DIR)/main.o $(BUILD_DIR)/femto.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/io.o
+OBJS      = $(BUILD_DIR)/main.o $(BUILD_DIR)/io.o $(BUILD_DIR)/femto.o $(BUILD_DIR)/cpu.o 
 
 
 default: all
@@ -40,8 +40,8 @@ $(BUILD_DIR)/test.o: $(SRC_DIR)/test/test.c
 main: $(OBJS)
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/femto $(OBJS) $(CLIBS)
 
-test: $(BUILD_DIR)/test.o $(BUILD_DIR)/cpu.o
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/test $(BUILD_DIR)/test.o $(BUILD_DIR)/cpu.o $(CLIBS)
+test: $(BUILD_DIR)/test.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/io.o
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/test $(BUILD_DIR)/test.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/io.o $(CLIBS)
 
 asm: $(BUILD_DIR)/asm.o
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/asm $< $(CLIBS)

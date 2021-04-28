@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include "cpu.h"
 #include "../common.h"
+#include "../io/io.h"
 
 
 typedef void (*FemtoOpcode)(FemtoEmu_t *emu, bool verbose);
@@ -348,6 +349,36 @@ void OpcodeRet(FemtoEmu_t *emu, bool verbose)
     if (verbose == true) printf("RET TO 0x%03X; LOW PC = 0x%02X & HIGH PC = 0x%01X\n", PC, pc_low, pc_high); 
 
 }
+
+void OpcodeIn(FemtoEmu_t *emu, bool verbose)
+{
+    /* IN REG, REG | IMM */
+    if (ADRM == ADRM_IMM)
+    {
+        R[DREG] = In(DATA);
+        if (verbose == true) printf("IN FROM PORT 0x%02X TO R%d (=0x%02X)\n", DATA, DREG, R[DREG]);
+    }
+    else
+    {
+        R[DREG] = In(R[SREG]);
+        if (verbose == true) printf("IN FROM PORT R%d (=0x%02X) TO R%d (=0x%02X)\n", SREG, R[SREG], DREG, R[DREG]);
+    }
+}
+
+void OpcodeOut(FemtoEmu_t *emu, bool verbose)
+{
+    /* OUT REG | IMM, REG */
+    if (ADRM == ADRM_IMM)
+    {
+        Out(DATA, R[SREG]);
+        if (verbose == true) printf("OUT TO PORT 0x%02X FROM R%d (=0x%02X)\n", DATA, SREG, R[SREG]);
+    }
+    else
+    {
+        Out(R[DREG], R[SREG]);
+        if (verbose == true) printf("OUT TO PORT R%d (=0x%02X) FROM R%d (=0x%02X)\n", DREG, R[DREG], SREG, R[SREG]);
+    }
+}
 /*** END OF OPCODE FUNCTIONS ***/
 
 
@@ -356,7 +387,7 @@ FemtoOpcode OpcodeFunc[0x20] =
 {
     OpcodeHlt,   OpcodeLdr,   OpcodeLdm,   OpcodeSti,   OpcodeStr,   OpcodeAdd,   OpcodeSub,   OpcodeCmp,
     OpcodeJz,    OpcodeJn,    OpcodeJc,    OpcodeJnc,   OpcodeJbe,   OpcodeJa,    OpcodeJmp,   OpcodeJnz,
-    OpcodeJnn,   OpcodePush,  OpcodePop,   OpcodeCall,  OpcodeRet,   OpcodeError, OpcodeError, OpcodeError,
+    OpcodeJnn,   OpcodePush,  OpcodePop,   OpcodeCall,  OpcodeRet,   OpcodeIn,    OpcodeOut,   OpcodeError,
     OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
 };
 
