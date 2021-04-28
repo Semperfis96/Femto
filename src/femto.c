@@ -125,6 +125,9 @@ FemtoEmu_t * EmuInit(const char *rom_file, bool verbose)
     }
     if (verbose == true) printf("FEMTO: ROM IS LOAD IN VIRTUAL RAM\n");
 
+    /* IO INIT */
+    IOInit(verbose);
+
     return temp;
 }
 

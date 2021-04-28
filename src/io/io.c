@@ -35,39 +35,49 @@
 typedef uint8_t (*InFunc)(void);
 typedef void    (*OutFunc)(uint8_t data);
 
+
+/* DEFAULT INPUT & OUTPUT CALLBACKS TO PREVENT SEGMENTATION ERROR */
+OUTFUNC(OutDefault, data)
+{
+    return;
+}
+
+INPFUNC(InDefault)
+{
+    return 0xFF;
+}
+
 InFunc  InputFunction[256]  = {NULL};
 OutFunc OutputFunction[256] = {NULL};
 
 
+void IOInit(bool verbose)
+{
+    if (verbose == true) printf("IO: STARTING INITIALIZATION\n");
+
+    for (int i = 0; i < 256; i++)
+    {
+        RegisterInputFunc(InDefault, i);
+        RegisterOutputFunc(OutDefault, i);
+    }
+
+    if (verbose == true) printf("IO: INITIALIZATION SUCCESSFUL\n");
+}
+
+
 void RegisterInputFunc(void *func, uint8_t io_port)
 {
-    /* VERIFY IF ANOTHER FUNCTION ISN'T ALREADY REGISTER FOR THIS SPECIFIC PORT */
-    if (InputFunction[io_port] == NULL)
-    {
-        InputFunction[io_port] = func;
-        // DEBUG:
-        printf("DEBUG ==> RegisterInputFunc(): REGISTER func %p to INPUT PORT 0x%02X\n", func, io_port);
-    }
-    else
-    {
-        printf("ERROR: CAN'T REGISTER INPUT FUNCTION %p ==> HARDWARE CONFLICT FOR INPUT PORT 0x%02X !!!\n", func, io_port);
-    }
+    InputFunction[io_port] = func;
+    // DEBUG:
+    printf("DEBUG ==> RegisterInputFunc(): REGISTER func %p to INPUT PORT 0x%02X\n", func, io_port);
 }
 
 
 void RegisterOutputFunc(void *func, uint8_t io_port)
 {
-    /* VERIFY IF ANOTHER FUNCTION ISN'T ALREADY REGISTER FOR THIS SPECIFIC PORT */
-    if (OutputFunction[io_port] == NULL)
-    {
-        OutputFunction[io_port] = func;
-        // DEBUG:
-        printf("DEBUG ==> RegisterOutputFunc(): REGISTER func %p to OUTPUT PORT 0x%02X\n", func, io_port);
-    }
-    else
-    {
-        printf("ERROR: CAN'T REGISTER OUTPUT FUNCTION %p ==> HARDWARE CONFLICT FOR OUTPUT PORT 0x%02X !!!\n", func, io_port);
-    }
+    OutputFunction[io_port] = func;
+    // DEBUG:
+    printf("DEBUG ==> RegisterOutputFunc(): REGISTER func %p to OUTPUT PORT 0x%02X\n", func, io_port);
 }
 
 
