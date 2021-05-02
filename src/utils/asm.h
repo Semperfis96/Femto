@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -52,7 +52,10 @@ typedef enum inst
     CALL = 0x13,
     RET  = 0x14,
     IN   = 0x15,
-    OUT  = 0x16
+    OUT  = 0x16,
+    SYS  = 0x17,
+    SEI  = 0x18,
+    SDI  = 0x19,
 } inst_t;
 
 typedef enum field_adrm
@@ -71,6 +74,14 @@ typedef struct trans
     field_adrm_t src;       /* INSTRUCTION SOURCE FIELD */
     bool         is_addr;   /* INSTRUCTION NEED ADDRESS (12BITS) NOT DATA (8BITS) */
 } trans_t;
+
+#define LABEL_SIZE 16
+
+typedef struct label
+{
+    char     name[LABEL_SIZE];
+    uint16_t address;
+} label_t;
 
 const trans_t inst_trans_table[] =
 {
@@ -97,6 +108,9 @@ const trans_t inst_trans_table[] =
     {"RET" , RET, NONE, NONE, false},
     {"IN"  , IN,  REG,  BOTH, false},
     {"OUT" , OUT, BOTH, REG,  false},
+    {"SYS" , SYS, NONE, NONE, false},
+    {"SEI" , SEI, NONE, NONE, false},
+    {"SDI" , SDI, NONE, NONE, false},
 };
 
 const trans_t reg_trans_table[] =

@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -36,6 +36,11 @@
 
 
 #define get_token strtok(NULL, " ,\n")
+#define MAX_LABEL  256
+
+label_t  lbl_array[MAX_LABEL];
+uint16_t pc        = 0;
+uint16_t label_num = 0;
 
 
 /*** CODE BEGINNING ***/
@@ -86,6 +91,71 @@ bool is_reg(char *token, int *range)
 }
 
 
+bool check_label(const char *name)
+{
+    int i = 0;
+    char temp[LABEL_SIZE] = {0};
+
+    if (strlen(name) >= LABEL_SIZE)
+    {
+        strncpy(temp, name, LABEL_SIZE-1);
+    }
+    else
+    {
+        strncpy(temp, name, strlen(name));
+    }
+    printf("check_label call with \"%s\" but detect as \"%s\"\n", name, temp);
+
+    while ((strcmp(lbl_array[i].name, temp) != 0) && i < MAX_LABEL)
+    {
+        i++;
+    }
+
+    if (i < MAX_LABEL)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+uint16_t find_label(const char *name)
+{
+    int i = 0;
+    char temp[LABEL_SIZE] = {0};
+
+    if (strlen(name) >= LABEL_SIZE)
+    {
+        strncpy(temp, name, LABEL_SIZE-1);
+    }
+    else
+    {
+        strncpy(temp, name, strlen(name));
+    }
+    
+    printf("find_label call with \"%s\" but detect as \"%s\"\n", name, temp);
+
+    while ((strcmp(lbl_array[i].name, temp) != 0) && i < MAX_LABEL)
+    {
+        i++;
+    }
+
+    if (i <= MAX_LABEL)
+    {
+        printf("found label %s with address 0x%03X\n", lbl_array[i].name, lbl_array[i].address);
+        return lbl_array[i].address;
+    }
+    else
+    {
+        printf("ERROR: LABEL \"%s\" NOT DEFINED !!!\n", name);
+        exit(-1);
+    }
+}
+
+
 /* RETURN "TRUE" ON ILLEGAL THING */
 bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uint8_t *data, bool *adrm)
 {
@@ -119,19 +189,42 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                 /* INSTRUCTION NEED DATA OR ADDRESS */
                 if (inst_trans_table[j].is_addr == true)
                 {
-                    temp = (int)strtol((const char *)token, NULL, 0);
+                    printf("%s dst field\n", token);
 
-                    /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
-                    if (temp < 0x1000)
+                    /* CHECK IF IT'S A KNOWN LABEL */
+                    if (check_label(token) == true)
                     {
-                        *addr = (uint16_t)temp;
-                        printf("DST FIELD ADDR 0x%03X\n", *addr);
+                        temp = (int)find_label(token);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("DST FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
                     else
                     {
-                        printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
-                        return true;
+                        temp = (int)strtol((const char *)token, NULL, 0);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("DST FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
+                    
                 }
                 else
                 {
@@ -171,18 +264,38 @@ bool dst_assembler(char *token, uint8_t inst, uint8_t *dreg, uint16_t *addr, uin
                 adrm = ADRM_IMM;
                 if (inst_trans_table[j].is_addr == true)
                 {
-                    temp = (int)strtol((const char *)token, NULL, 0);
-
-                    /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
-                    if (temp < 0x1000)
+                    /* CHECK IF IT'S A KNOWN LABEL */
+                    if (check_label(token) == true)
                     {
-                        *addr = (uint16_t)temp;
-                        printf("DST FIELD ADDR 0x%03X\n", *addr);
+                        temp = (int)find_label(token);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("DST FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
                     else
                     {
-                        printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
-                        return true;
+                        temp = (int)strtol((const char *)token, NULL, 0);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("DST FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(dst_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
                 }
                 else
@@ -242,18 +355,38 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                 /* INSTRUCTION NEED DATA OR ADDRESS */
                 if (inst_trans_table[j].is_addr == true)
                 {
-                    temp = (int)strtol((const char *)token, NULL, 0);
-
-                    /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
-                    if (temp < 0x1000)
+                    /* CHECK IF IT'S A KNOWN LABEL */
+                    if (check_label(token) == true)
                     {
-                        *addr = (uint16_t)temp;
-                        printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                        temp = (int)find_label(token);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
                     else
                     {
-                        printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
-                        return true;
+                        temp = (int)strtol((const char *)token, NULL, 0);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
                 }
                 else
@@ -294,18 +427,37 @@ bool src_assembler(char *token, uint8_t inst, uint8_t *sreg, uint16_t *addr, uin
                 adrm = ADRM_IMM;
                 if (inst_trans_table[j].is_addr == true)
                 {
-                    temp = (int)strtol((const char *)token, NULL, 0);
-
-                    /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
-                    if (temp < 0x1000)
+                    if (check_label(token) == true)
                     {
-                        *addr = (uint16_t)temp;
-                        printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                        temp = (int)find_label(token);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
                     else
                     {
-                        printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
-                        return true;
+                        temp = (int)strtol((const char *)token, NULL, 0);
+
+                        /* VERIFY THE SIZE OF THE ADDRESS NO MORE THAN 3 BYTES */
+                        if (temp < 0x1000)
+                        {
+                            *addr = (uint16_t)temp;
+                            printf("SRC FIELD ADDR 0x%03X\n", *addr);
+                        }
+                        else
+                        {
+                            printf("(src_assembler) ADDR FIELD WITH TOO BIG VALUE : 0x%X\n", temp);
+                            return true;
+                        }
                     }
                 }
                 else
@@ -373,6 +525,7 @@ int main(int argc, char *argv[])
     uint8_t  sreg       = 0;            /* SOURCE REGISTER */
     uint16_t addr       = 0;            /* 12BITS ADDRESS */
     int      line_num   = 1;
+    bool     is_label_find = false;
 
 
     /*** COMMAND-LINE ARGUMENTS ***/
@@ -407,11 +560,20 @@ int main(int argc, char *argv[])
     }
 
 
+    // /*** LABEL ARRAY ***/
+    // lbl_array = malloc(sizeof(label_t) * MAX_LABEL);
+    // if (lbl_array == NULL)
+    // {
+    //     printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR LABEL ARRAY !!!\n");
+    //     return -1;
+    // }
+
     /* LINE BUFFER */
     line = malloc(256 * sizeof(char));
     if (line == NULL)
     {
         printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR LINE BUFFER !!!\n");
+        //free(lbl_array);
         return -1;
     }
 
@@ -435,7 +597,49 @@ int main(int argc, char *argv[])
     }
 
 
-    /*** ASSEMBLER ***/
+    /*** 1ST PASS (FOR LABEL) ***/
+    while (fgets(line, 256, src_file) != NULL)
+    {
+        /* CONVERT STRING TO UPPER TO SUPPORT LOWER CASE IN SOURCE FILE */
+        for (int i = 0; i < 256; i++)
+        {
+            line[i] = toupper(line[i]);
+        }
+
+        /* GET TOKEN, LABEL MUST BE THE FIRST TOKEN ON A LINE */
+        token = strtok(line, " ,\n");
+
+        if (token != NULL)
+        {
+            printf("token : %s\n", token);
+
+            if (token[strlen(token) - 1] == ':')
+            {
+                is_label_find = true;
+                lbl_array[label_num].address = pc;
+                //strncpy(lbl_array[label_num].name, (const char *)token, ((strlen(token) - 1) < LABEL_SIZE) ? (strlen(token) - 1) : LABEL_SIZE);
+                if (strlen(token) >= LABEL_SIZE)
+                {
+                    strncpy(lbl_array[label_num].name, token, LABEL_SIZE-1);
+                }
+                else
+                {
+                    strncpy(lbl_array[label_num].name, token, strlen(token)-1);
+                }
+                
+                printf("label save : \"%s\" with address = 0x%03X\n", lbl_array[label_num].name, lbl_array[label_num].address);
+                label_num++;
+            }
+        }
+
+        if (!is_label_find) pc = pc + 3;
+        is_label_find = false;
+    }
+
+    fseek(src_file, 0L, SEEK_SET);
+
+
+    /*** 2ND PASS ASSEMBLER ***/
     while (fgets(line, 256, src_file) != NULL)
     {
         /* CONVERT STRING TO UPPER TO SUPPORT LOWER CASE IN SOURCE FILE */
@@ -455,56 +659,74 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            /*** INST ASSEMBLING ***/
-            if (inst_assembler(token, &inst))
+            /* DETECT IF IT'S A LABEL */
+            if (token[strlen(token) - 1] != ':')
             {
-                printf("(main) ILLEGAL INSTRUCTION AT LINE %d : \"%s\"\n", line_num, (const char *)token);
-                fclose(dst_file);
-                fclose(src_file);
-                free(line);
-                return -1;
-            }
+                /*** INST ASSEMBLING ***/
+                if (inst_assembler(token, &inst))
+                {
+                    printf("(main) ILLEGAL INSTRUCTION AT LINE %d : \"%s\"\n", line_num, (const char *)token);
+                    fclose(dst_file);
+                    fclose(src_file);
+                    free(line);
+                    return -1;
+                }
 
-            /*** DST ASSEMBLING ***/
-            if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
+                /*** DST ASSEMBLING ***/
+                if (dst_assembler(token, inst, &dreg, &addr, &data, &adrm))
+                {
+                    printf("(main) ILLEGAL DST FIELD AT LINE %d\n", line_num);
+                    fclose(dst_file);
+                    fclose(src_file);
+                    free(line);
+                    return -1;
+                }
+
+                /*** SRC ASSEMBLING ***/
+                if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
+                {
+                    printf("(main) ILLEGAL SRC FIELD AT LINE %d\n", line_num);
+                    fclose(dst_file);
+                    fclose(src_file);
+                    free(line);
+                    return -1;
+                }
+
+
+                /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
+                f[0] = inst | (adrm << 7);
+                f[1] = (dreg << 6) | (sreg << 4) | ((addr & 0xF00) >> 8);
+                f[2] = data | (addr & 0x0FF);
+
+                if (fwrite((const void *)f, 1, 3, dst_file) < 3)
+                {
+                    printf("(main) ERROR DURING WRITING IN \"%s\"\n", dst_fname);
+                }
+
+
+                /*** RESET VARIABLES BECAUSE THERE ARE USED PER INSTRUCTION ASSEMBLING ***/
+                inst  = 0;
+                dreg  = 0;
+                sreg  = 0;
+                addr  = 0;
+                data  = 0;
+                adrm  = ADRM_IMM;
+                token = get_token;
+
+                /*** VERIFY IF THERE IS NOTHING AFTER THE COMPLETE INSTRUCTION ***/
+                if ((token != NULL) && (token[0] != '#'))
+                {
+                    printf("ONLY ONE INSTRUCTION PER LINE, TOO MUCH AT LINE %d !!!\n", line_num);
+                    fclose(dst_file);
+                    fclose(src_file);
+                    free(line);
+                    return -1;
+                }
+            }
+            else
             {
-                printf("(main) ILLEGAL DST FIELD AT LINE %d\n", line_num);
-                fclose(dst_file);
-                fclose(src_file);
-                free(line);
-                return -1;
+                token = get_token;
             }
-
-            /*** SRC ASSEMBLING ***/
-            if (src_assembler(token, inst, &sreg, &addr, &data, &adrm))
-            {
-                printf("(main) ILLEGAL SRC FIELD AT LINE %d\n", line_num);
-                fclose(dst_file);
-                fclose(src_file);
-                free(line);
-                return -1;
-            }
-
-
-            /*** COMBINE ASSEMBLING RESULT & WRITE TO FILE ***/
-            f[0] = inst | (adrm << 7);
-            f[1] = (dreg << 6) | (sreg << 4) | ((addr & 0xF00) >> 8);
-            f[2] = data | (addr & 0x0FF);
-
-            if (fwrite((const void *)f, 1, 3, dst_file) < 3)
-            {
-                printf("(main) ERROR DURING WRITING IN \"%s\"\n", dst_fname);
-            }
-
-
-            /*** RESET VARIABLES BECAUSE THERE ARE USED PER INSTRUCTION ASSEMBLING ***/
-            inst  = 0;
-            dreg  = 0;
-            sreg  = 0;
-            addr  = 0;
-            data  = 0;
-            adrm  = ADRM_IMM;
-            token = get_token;
         }
 
         line_num++;
@@ -517,6 +739,11 @@ int main(int argc, char *argv[])
        return -1;
     }
 
+
+    for (int i = 0; i < label_num; i++)
+    {
+        printf("%d LABEL : \"%s\" = 0x%03X\n", i, lbl_array[i].name, lbl_array[i].address);
+    }
 
     /*** FILE HANDLING (CLOSING) & FREE BUFFER & PROGRAM EXIT ***/
     fclose(dst_file);
