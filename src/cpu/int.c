@@ -25,35 +25,41 @@
  * - MIII IIII   RRRR AAAA   AAAA AAAA
  */
 
-#ifndef FEMTO_H_
-#define FEMTO_H_
+#include <stdio.h>
+#include "../femto.h"
+#include "cpu.h"
+#include "int.h"
 
-#include <stdint.h>
-#include <stdbool.h>
 
-
-typedef struct FemtoEmu
+void IntReq(FemtoEmu_t *emu)
 {
-    uint16_t  pc;      /* PROGRAM COUNTER (12BITS) */
-    uint8_t   r[4];    /* GP REGISTERS (R0, R1, R2 AND R3) */
-    uint8_t   sp;      /* STACK POINTER */
-    uint8_t   flags;   /* FLAGS REGISTER */
-    uint8_t   f[3];    /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
-    uint8_t   inst;    /* INSTRUCTION CODE */
-    uint8_t  *ram;     /* VIRTUAL COMPUTER RAM, 4KBs (0x000 - 0xFFF) */
-    bool      adrm;    /* ADDRESSING MODE */
-    bool      halt;    /* CPU IS HALT OR NOT */
-    uint8_t   data;    /* 8BITS DATA */
-    uint16_t  addr;    /* 12BITS ADDRESS */
-    uint8_t   dreg;    /* DESTINATION REGISTER */
-    uint8_t   sreg;    /* SOURCE REGISTER */
-    int       temp;
-    bool      ireq;    /* INTERRUPT REQUEST (HARDWARE) */ 
-} FemtoEmu_t;
+    if (CHK_IRQ_ENABLE(emu))
+    {
+        /* ACKNOWLEDGE OF THE IRQ */
+        RES_IREQ(emu)
+
+        /* PUSH PC ON THE STACK, LOW THEN HIGH PART */
+        uint8_t pc_low  = (uint8_t)(PC & 0x00FF);
+        uint8_t pc_high = (uint8_t)((PC & 0x0F00) >> 8);
+
+        StackPushByte(emu, pc_low);   /* PUSH LOW PART OF PC */
+        StackPushByte(emu, pc_high);  /* PUSH HIGH PART OF PC */
+
+        /* GOTO TO THE ADDRESS STORE IN THE IRQ VECTOR */
+        PC = GET_ADDR_VEC(IREQ_VEC);
+    }
+}
 
 
-FemtoEmu_t * EmuInit(const char *rom_file, bool verbose);
-void         EmuQuit(FemtoEmu_t *emu);
-void         EmuLoop(FemtoEmu_t *emu, bool verbose);
+void SysReq(FemtoEmu_t *emu)
+{
+    /* PUSH PC ON THE STACK, LOW THEN HIGH PART */
+    uint8_t pc_low  = (uint8_t)(PC & 0x00FF);
+    uint8_t pc_high = (uint8_t)((PC & 0x0F00) >> 8);
 
-#endif
+    StackPushByte(emu, pc_low);   /* PUSH LOW PART OF PC */
+    StackPushByte(emu, pc_high);  /* PUSH HIGH PART OF PC */
+
+    /* GOTO TO THE ADDRESS STORE IN THE IRQ VECTOR */
+    PC = GET_ADDR_VEC(SYS_VEC);
+}

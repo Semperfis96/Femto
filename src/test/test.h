@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -66,6 +66,9 @@ void    OpcodePush(FemtoEmu_t *emu, bool verbose);
 void    OpcodePop(FemtoEmu_t *emu, bool verbose);
 void    OpcodeCall(FemtoEmu_t *emu, bool verbose);
 void    OpcodeRet(FemtoEmu_t *emu, bool verbose);
+void    OpcodeSys(FemtoEmu_t *emu, bool verbose);
+void    OpcodeSei(FemtoEmu_t *emu, bool verbose);
+void    OpcodeSdi(FemtoEmu_t *emu, bool verbose);
 void    OpcodeError(FemtoEmu_t *emu, bool verbose);
 
 #endif

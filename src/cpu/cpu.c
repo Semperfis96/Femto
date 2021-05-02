@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include "cpu.h"
+#include "int.h"
 #include "../common.h"
 #include "../io/io.h"
 
@@ -62,7 +63,7 @@ uint8_t UpdateFlags(int testing)
 
 void PrintFlags(FemtoEmu_t *emu, bool verbose)
 {
-    if (verbose == true) printf("FLAGS: N : %01X; C : %01X; Z : %01X\n", NFLAG, CFLAG, ZFLAG);
+    if (verbose == true) printf("FLAGS: I : %01X; N : %01X; C : %01X; Z : %01X\n", IFLAG, NFLAG, CFLAG, ZFLAG);
 }
 
 /* STACK HELPING FUNCTIONS */
@@ -379,6 +380,29 @@ void OpcodeOut(FemtoEmu_t *emu, bool verbose)
         if (verbose == true) printf("OUT TO PORT R%d (=0x%02X) FROM R%d (=0x%02X)\n", DREG, R[DREG], SREG, R[SREG]);
     }
 }
+
+void OpcodeSys(FemtoEmu_t *emu, bool verbose)
+{
+    /* SYS */
+    if (verbose == true) printf("SYS : JUMP TO ADDRESS IN SYS VECTOR 0x002 (0x%03X)\n", GET_ADDR_VEC(SYS_VEC));
+    SysReq(emu);
+}
+
+void OpcodeSei(FemtoEmu_t *emu, bool verbose)
+{
+    /* SEI */
+    ENABLE_IREQ(emu)
+    if (verbose == true) printf("SEI : ENABLE INTERRUPT (IRQ)\n");
+    PrintFlags(emu, verbose);
+}
+
+void OpcodeSdi(FemtoEmu_t *emu, bool verbose)
+{
+    /* SDI */
+    DISABLE_IREQ(emu)
+    if (verbose == true) printf("SDI : DISABLE INTERRUPT (IRQ)\n");
+    PrintFlags(emu, verbose);
+}
 /*** END OF OPCODE FUNCTIONS ***/
 
 
@@ -387,8 +411,8 @@ FemtoOpcode OpcodeFunc[0x20] =
 {
     OpcodeHlt,   OpcodeLdr,   OpcodeLdm,   OpcodeSti,   OpcodeStr,   OpcodeAdd,   OpcodeSub,   OpcodeCmp,
     OpcodeJz,    OpcodeJn,    OpcodeJc,    OpcodeJnc,   OpcodeJbe,   OpcodeJa,    OpcodeJmp,   OpcodeJnz,
-    OpcodeJnn,   OpcodePush,  OpcodePop,   OpcodeCall,  OpcodeRet,   OpcodeIn,    OpcodeOut,   OpcodeError,
-    OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
+    OpcodeJnn,   OpcodePush,  OpcodePop,   OpcodeCall,  OpcodeRet,   OpcodeIn,    OpcodeOut,   OpcodeSys,
+    OpcodeSei,   OpcodeSdi,   OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError, OpcodeError
 };
 
 

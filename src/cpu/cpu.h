@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -47,5 +47,7 @@
 #define TEMP  emu->temp
 
 void CpuExecInst(FemtoEmu_t *emu, bool verbose);
+void StackPushByte(FemtoEmu_t *emu, uint8_t byte);
+uint8_t StackPopByte(FemtoEmu_t *emu);
 
 #endif

@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -34,6 +34,7 @@
 #include "../common.h"
 #include "../cpu/cpu.h"
 #include "../io/io.h"
+#include "../cpu/int.h"
 #include "test.h"
 
 
@@ -458,6 +459,30 @@ void TestOpcodeOut(FemtoEmu_t *emu)
 }
 /*** END OF IO OPCODE TESTING ***/
 
+void TestOpcodeSys(FemtoEmu_t *emu)
+{
+    RAM[0x02] = 0xFF;   /* LOW SYS VECTOR PART */
+    RAM[0x03] = 0x01;   /* HIGH SYS VECTOR PART */
+
+    OpcodeSys(emu, false);
+    ASSERT_EQ(PC, 0x01FF, "SYS")
+    ResetVar(emu);
+}
+
+void TestOpcodeSei(FemtoEmu_t *emu)
+{
+    OpcodeSei(emu, false);
+    ASSERT_EQ(IFLAG, 1, "SEI")
+    ResetVar(emu);
+}
+
+void TestOpcodeSdi(FemtoEmu_t *emu)
+{
+    OpcodeSdi(emu, false);
+    ASSERT_EQ(IFLAG, 0, "SDI")
+    ResetVar(emu);
+}
+
 /*** END OF UNIT TESTING FUNCTIONS ***/
 
 
@@ -513,6 +538,9 @@ int main(void)
     TestOpcodeRet(test_emu);
     TestOpcodeIn(test_emu);
     TestOpcodeOut(test_emu);
+    TestOpcodeSys(test_emu);
+    TestOpcodeSei(test_emu);
+    TestOpcodeSdi(test_emu);
 
     return 0;
 }

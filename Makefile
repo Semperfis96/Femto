@@ -3,8 +3,8 @@ CFLAGS    = -Wall -Wextra -g
 CLIBS     =
 BUILD_DIR = ./build
 SRC_DIR   = ./src
-OBJS      = $(BUILD_DIR)/main.o $(BUILD_DIR)/io.o $(BUILD_DIR)/femto.o $(BUILD_DIR)/cpu.o 
-
+OBJS      = $(BUILD_DIR)/main.o $(BUILD_DIR)/io.o $(BUILD_DIR)/femto.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/int.o 
+OBJS_TEST = $(BUILD_DIR)/test.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/io.o $(BUILD_DIR)/int.o
 
 default: all
 
@@ -20,6 +20,9 @@ $(BUILD_DIR)/cpu.o: $(SRC_DIR)/cpu/cpu.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 
 $(BUILD_DIR)/io.o: $(SRC_DIR)/io/io.c
+	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
+
+$(BUILD_DIR)/int.o: $(SRC_DIR)/cpu/int.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(CLIBS)
 
 
@@ -40,8 +43,8 @@ $(BUILD_DIR)/test.o: $(SRC_DIR)/test/test.c
 main: $(OBJS)
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/femto $(OBJS) $(CLIBS)
 
-test: $(BUILD_DIR)/test.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/io.o
-	$(CC) $(CFLAGS) -o $(BUILD_DIR)/test $(BUILD_DIR)/test.o $(BUILD_DIR)/cpu.o $(BUILD_DIR)/io.o $(CLIBS)
+test: $(OBJS_TEST)
+	$(CC) $(CFLAGS) -o $(BUILD_DIR)/test $(OBJS_TEST) $(CLIBS)
 
 asm: $(BUILD_DIR)/asm.o
 	$(CC) $(CFLAGS) -o $(BUILD_DIR)/asm $< $(CLIBS)

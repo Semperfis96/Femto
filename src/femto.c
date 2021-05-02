@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -32,6 +32,7 @@
 #include "cpu/cpu.h"
 #include "io/io.h"
 #include "common.h"
+#include "cpu/int.h"
 
 
 /*** HELPING FUNCTIONS ***/
@@ -85,6 +86,7 @@ void ResetEmuState(FemtoEmu_t *emu)
     emu->dreg  = 0;         /* DESTINATION REGISTER */
     emu->sreg  = 0;         /* SOURCE REGISTER */
     emu->temp  = 0;
+    emu->ireq  = false;     /* INTERRUPT REQUEST (HARDWARE) */
 }
 /*** END OF HELPING FUNCTIONS ***/
 
@@ -125,6 +127,10 @@ FemtoEmu_t * EmuInit(const char *rom_file, bool verbose)
     }
     if (verbose == true) printf("FEMTO: ROM IS LOAD IN VIRTUAL RAM\n");
 
+    /* ENABLE INTERRUPT BY DEFAULT */
+    ENABLE_IREQ(temp)
+    if (verbose == true) printf("FEMTO: ENABLE INTERRUPT (IRQ)\n");
+
     /* IO INIT */
     IOInit(verbose);
 
@@ -139,6 +145,7 @@ void EmuLoop(FemtoEmu_t *emu, bool verbose)
     while (!emu->halt)
     {
         CpuExecInst(emu, verbose);
+        if (CHK_IREQ(emu)) IntReq(emu);
     }
 }
 

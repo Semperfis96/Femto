@@ -25,35 +25,25 @@
  * - MIII IIII   RRRR AAAA   AAAA AAAA
  */
 
-#ifndef FEMTO_H_
-#define FEMTO_H_
+#ifndef INT_H_
+#define INT_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include "../cpu/cpu.h"
+
+#define IREQ_VEC        0x000   /* IREQ VECTOR (WHEN IREQ, JUMP TO ADDRESS CONTAIN IN THIS VECTOR) ==> ADDRESS IS STORED BIG-ENDIAN */
+#define SYS_VEC         0x002   /* SYS  VECTOR (WHEN SYS INSTRUCTION, JUMP TO ADDRESS IN THIS VECTOR) ==> ADDRESS IS STORED BIG-ENDIAN */
+#define GET_ADDR_VEC(v) (RAM[v + 1] << 8) | RAM[v]
 
 
-typedef struct FemtoEmu
-{
-    uint16_t  pc;      /* PROGRAM COUNTER (12BITS) */
-    uint8_t   r[4];    /* GP REGISTERS (R0, R1, R2 AND R3) */
-    uint8_t   sp;      /* STACK POINTER */
-    uint8_t   flags;   /* FLAGS REGISTER */
-    uint8_t   f[3];    /* ARRAY OF BINARY FETCH INSTRUCTION (3 BYTES LONG) */
-    uint8_t   inst;    /* INSTRUCTION CODE */
-    uint8_t  *ram;     /* VIRTUAL COMPUTER RAM, 4KBs (0x000 - 0xFFF) */
-    bool      adrm;    /* ADDRESSING MODE */
-    bool      halt;    /* CPU IS HALT OR NOT */
-    uint8_t   data;    /* 8BITS DATA */
-    uint16_t  addr;    /* 12BITS ADDRESS */
-    uint8_t   dreg;    /* DESTINATION REGISTER */
-    uint8_t   sreg;    /* SOURCE REGISTER */
-    int       temp;
-    bool      ireq;    /* INTERRUPT REQUEST (HARDWARE) */ 
-} FemtoEmu_t;
+#define IREQ(e)               e->ireq = true;
+#define RES_IREQ(e)           e->ireq = false;
+#define CHK_IREQ(e)          (e->ireq == true)
+#define CHK_IRQ_ENABLE(e)   ((e->ireq & 0x8) == 1)
+#define ENABLE_IREQ(e)        e->flags |= 1 << 3;
+#define DISABLE_IREQ(e)       e->flags &= ~(1 << 3);
 
-
-FemtoEmu_t * EmuInit(const char *rom_file, bool verbose);
-void         EmuQuit(FemtoEmu_t *emu);
-void         EmuLoop(FemtoEmu_t *emu, bool verbose);
+void IntReq(FemtoEmu_t *emu);
+void SysReq(FemtoEmu_t *emu);
 
 #endif

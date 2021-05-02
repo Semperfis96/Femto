@@ -19,7 +19,7 @@
 /* Computer architecture:
  * - 4KBs RAM
  * - RISC CPU: 4 GP REGISTERS; INTEGER ONLY; REDUCE ADDRESSING MODES & MEMORY
- * - STRUCTURE OF FLAGS REGISTER: XXXX XNCZ (N : Negative, C : Carry; Z : Zero)
+ * - STRUCTURE OF FLAGS REGISTER: XXXX INCZ (I : INTERRUPT; N : Negative; C : Carry; Z : Zero)
  * - INSTRUCTION FORMAT: (I: INST; M : ADDRESSING MODES; R : REGISTERS; D : DATA; A : ADDRESS)
  * - MIII IIII   RRRR xxxx   DDDD DDDD
  * - MIII IIII   RRRR AAAA   AAAA AAAA
@@ -40,9 +40,10 @@
 #define STACK_BASE  0xF00
 
 /* FLAGS: XXXX XNCZ */
-#define CFLAG ((emu->flags >>  1) & 0x1)
+#define CFLAG ((emu->flags >> 1) & 0x1)
 #define ZFLAG  (emu->flags & 0x1)
-#define NFLAG ((emu->flags >>  2) & 0x1)
+#define NFLAG ((emu->flags >> 2) & 0x1)
+#define IFLAG ((emu->flags >> 3) & 0x1)
 
 #define ADRM_IMM  false
 #define ADRM_REG  true
