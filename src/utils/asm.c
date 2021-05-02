@@ -507,7 +507,9 @@ bool inst_assembler(char *token, uint8_t *inst)
 }
 
 
-/* TODO: ADD LABEL SUPPORT (ENABLE MULTI-PASS ASSEMBLING), ADD DIRECTVES SUPPORT (ORG, DB, DW, DD, ETC.) */
+/* PRELIMINARY: ADD LABEL SUPPORT (ENABLE MULTI-PASS ASSEMBLING)
+ * TODO: ADD DIRECTVES SUPPORT (ORG, DB, DW, DD, ETC.) 
+ */
 /*** PROGRAM ENTRY POINT ***/
 int main(int argc, char *argv[])
 {
@@ -560,20 +562,11 @@ int main(int argc, char *argv[])
     }
 
 
-    // /*** LABEL ARRAY ***/
-    // lbl_array = malloc(sizeof(label_t) * MAX_LABEL);
-    // if (lbl_array == NULL)
-    // {
-    //     printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR LABEL ARRAY !!!\n");
-    //     return -1;
-    // }
-
     /* LINE BUFFER */
     line = malloc(256 * sizeof(char));
     if (line == NULL)
     {
         printf("(main) ERROR: CAN'T ALLOCATE MEMORY FOR LINE BUFFER !!!\n");
-        //free(lbl_array);
         return -1;
     }
 
@@ -611,13 +604,13 @@ int main(int argc, char *argv[])
 
         if (token != NULL)
         {
-            printf("token : %s\n", token);
-
+            /* IS IT A LABEL ? */
             if (token[strlen(token) - 1] == ':')
             {
-                is_label_find = true;
-                lbl_array[label_num].address = pc;
-                //strncpy(lbl_array[label_num].name, (const char *)token, ((strlen(token) - 1) < LABEL_SIZE) ? (strlen(token) - 1) : LABEL_SIZE);
+                is_label_find               = true; /* WE FIND A LABEL */
+                lbl_array[label_num].address = pc;  /* SAVE THE CURRENT ADDRESS IN THE LABEL */
+
+                /* CHECK THE SIZE OF THE LABEL STRING, TRUNCATED IF NECESSARY */
                 if (strlen(token) >= LABEL_SIZE)
                 {
                     strncpy(lbl_array[label_num].name, token, LABEL_SIZE-1);
@@ -632,6 +625,7 @@ int main(int argc, char *argv[])
             }
         }
 
+        /* WE INCREMENT ONLY IF VALID INSTRUCTION IS ENCOUNTER */
         if (!is_label_find) pc = pc + 3;
         is_label_find = false;
     }
