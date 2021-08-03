@@ -473,6 +473,7 @@ void TestOpcodeSei(FemtoEmu_t *emu)
 {
     OpcodeSei(emu, false);
     ASSERT_EQ(IFLAG, 1, "SEI")
+    ASSERT_EQ(CHK_IRQ_ENABLE(emu), 1, "IRQ ENABLE")
     ResetVar(emu);
 }
 
@@ -480,6 +481,7 @@ void TestOpcodeSdi(FemtoEmu_t *emu)
 {
     OpcodeSdi(emu, false);
     ASSERT_EQ(IFLAG, 0, "SDI")
+    ASSERT_EQ(CHK_IRQ_ENABLE(emu), 0, "IRQ DISABLE")
     ResetVar(emu);
 }
 

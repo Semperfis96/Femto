@@ -40,8 +40,8 @@
 #define STACK_BASE  0xF00
 
 /* FLAGS: XXXX XNCZ */
-#define CFLAG ((emu->flags >> 1) & 0x1)
 #define ZFLAG  (emu->flags & 0x1)
+#define CFLAG ((emu->flags >> 1) & 0x1)
 #define NFLAG ((emu->flags >> 2) & 0x1)
 #define IFLAG ((emu->flags >> 3) & 0x1)
 

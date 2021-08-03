@@ -391,16 +391,16 @@ void OpcodeSys(FemtoEmu_t *emu, bool verbose)
 void OpcodeSei(FemtoEmu_t *emu, bool verbose)
 {
     /* SEI */
-    ENABLE_IREQ(emu)
-    if (verbose == true) printf("SEI : ENABLE INTERRUPT (IRQ)\n");
+    ENABLE_IRQ(emu)
+    if (verbose == true) printf("SEI : ENABLE INTERRUPT (IRQ) -> IFLAG = %d\n", IFLAG);
     PrintFlags(emu, verbose);
 }
 
 void OpcodeSdi(FemtoEmu_t *emu, bool verbose)
 {
     /* SDI */
-    DISABLE_IREQ(emu)
-    if (verbose == true) printf("SDI : DISABLE INTERRUPT (IRQ)\n");
+    DISABLE_IRQ(emu)
+    if (verbose == true) printf("SDI : DISABLE INTERRUPT (IRQ) -> IFLAG = %d\n", IFLAG);
     PrintFlags(emu, verbose);
 }
 /*** END OF OPCODE FUNCTIONS ***/

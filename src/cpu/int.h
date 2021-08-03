@@ -39,9 +39,9 @@
 #define IREQ(e)               e->ireq = true;
 #define RES_IREQ(e)           e->ireq = false;
 #define CHK_IREQ(e)          (e->ireq == true)
-#define CHK_IRQ_ENABLE(e)   ((e->ireq & 0x8) == 1)
-#define ENABLE_IREQ(e)        e->flags |= 1 << 3;
-#define DISABLE_IREQ(e)       e->flags &= ~(1 << 3);
+#define CHK_IRQ_ENABLE(e)  (((e->flags >> 3) & 0x1) == 1)
+#define ENABLE_IRQ(e)        e->flags |= 1 << 3;
+#define DISABLE_IRQ(e)       e->flags &= ~(1 << 3);
 
 void IntReq(FemtoEmu_t *emu);
 void SysReq(FemtoEmu_t *emu);

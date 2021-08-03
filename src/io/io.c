@@ -69,7 +69,7 @@ void RegisterInputFunc(void *func, uint8_t io_port)
 {
     InputFunction[io_port] = func;
     // DEBUG:
-    printf("DEBUG ==> RegisterInputFunc(): REGISTER func %p to INPUT PORT 0x%02X\n", func, io_port);
+    printf("DEBUG ==> RegisterInputFunc() : REGISTER func %p to INPUT PORT  0x%02X\n", func, io_port);
 }
 
 

@@ -127,8 +127,8 @@ FemtoEmu_t * EmuInit(const char *rom_file, bool verbose)
     }
     if (verbose == true) printf("FEMTO: ROM IS LOAD IN VIRTUAL RAM\n");
 
-    /* ENABLE INTERRUPT BY DEFAULT */
-    ENABLE_IREQ(temp)
+    /* ENABLE INTERRUPT REQUEST BY DEFAULT */
+    ENABLE_IRQ(temp);
     if (verbose == true) printf("FEMTO: ENABLE INTERRUPT (IRQ)\n");
 
     /* IO INIT */
